@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-i$z_5rz^0w*#9&swdg%x-3yh@**c$^b!)-!@)^2#2#4#d1v$$0
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1']
 
 
 # Application definition
@@ -76,8 +76,14 @@ WSGI_APPLICATION = 'errander.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        # 'ENGINE': 'django.db.backends.sqlite3',
+        # 'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'errander',
+        'USER': 'errander_user',
+        'PASSWORD': 'xeypZVUN!@jzuk7tGSFNBm',
+        'HOST': 'localhost',
+        'PORT': '',
     }
 }
 
@@ -122,6 +128,3 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-LOGIN_URL = 'login'
-LOGOUT_URL = 'logout'
