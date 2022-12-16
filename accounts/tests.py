@@ -1,9 +1,9 @@
 from django.test import TestCase
-from django.utils import timezone
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 
-class SignTest(TestCase):
+
+class SignInTest(TestCase):
         def setUp(self):
             self.user = User.objects.create_user(username='test', password='12test12',
                                                              email='test@example.com')
@@ -23,3 +23,28 @@ class SignTest(TestCase):
         def test_wrong_pssword(self):
             user = authenticate(username='test', password='wrong')
             self.assertFalse(user is not None and user.is_authenticated)
+
+
+class LogInTest(TestCase):
+    def setUp(self):
+        self.credentials = {
+            'username': 'testuser',
+            'password': 'secret'}
+        User.objects.create_user(**self.credentials)
+
+    def test_log_in(self):
+        self.credentials = {
+            'username': 'testuser',
+            'password': 'secret'}
+        response = self.client.post('/accounts/login_user/', self.credentials, follow=True)
+        messages = list(response.context['messages'])
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(str(messages[0]), 'log in success')
+    def test_wrong_pssword(self):
+        self.credentials = {
+            'username': 'testuser',
+            'password': 'secreassasat'}
+        response = self.client.post('/accounts/login_user/', self.credentials, follow=True)
+        messages = list(response.context['messages'])
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(str(messages[0]), 'logging in error')
