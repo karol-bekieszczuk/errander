@@ -51,16 +51,24 @@ class LogInTest(TestCase):
 
 
 class LogOutTest(TestCase):
-    def setUpAndLogin(self):
+    def setUp(self):
         self.credentials = {
             'username': 'testuser',
             'password': 'secret'}
-        User.objects.create_user(**self.credentials)
+        self.user = User.objects.create_user(**self.credentials)
+        self.user.save()
 
-    def test_logout(self):
-        user = authenticate(username='testuser', password='secret')
+    def test_logout_logged_in_user(self):
+        self.client.login(username='testuser', password='secret')
         response = self.client.post('/accounts/logout_user/', follow=True)
         messages = list(response.context['messages'])
-        self.assertTrue(user is None)
+        self.assertFalse(response.wsgi_request.user.is_authenticated)
         self.assertEqual(len(messages), 1)
         self.assertEqual(str(messages[0]), 'log out success')
+
+    def test_logout_not_logged_in_user(self):
+        response = self.client.post('/accounts/logout_user/', follow=True)
+        messages = list(response.context['messages'])
+        self.assertFalse(response.wsgi_request.user.is_authenticated)
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(str(messages[0]), 'you are not logged in')
