@@ -2,7 +2,6 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from hashlib import sha1
 
 
 def login_user(request):
@@ -16,6 +15,12 @@ def login_user(request):
     else:
         messages.success(request, 'logging in error')
         return render(request, 'accounts/login.html', {})
+
+
+def logout_user(request):
+    logout(request)
+    messages.success(request, 'log out success')
+    return render(request, 'accounts/logged_out.html', {})
 
 
 @login_required

@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Logged out</title>
+</head>
+<body>
+
+
+{% block content %}
+
+<div class="container">
+    <h3 class="mt-5 text-center"><a href="{% url 'accounts:login_user' %}">Go to Login Page</a></h3>
+</div>
+
+{% endblock %}
+
+</body>
+</html>

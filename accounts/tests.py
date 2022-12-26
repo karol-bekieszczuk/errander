@@ -48,3 +48,19 @@ class LogInTest(TestCase):
         messages = list(response.context['messages'])
         self.assertEqual(len(messages), 1)
         self.assertEqual(str(messages[0]), 'logging in error')
+
+
+class LogOutTest(TestCase):
+    def setUpAndLogin(self):
+        self.credentials = {
+            'username': 'testuser',
+            'password': 'secret'}
+        User.objects.create_user(**self.credentials)
+
+    def test_logout(self):
+        user = authenticate(username='testuser', password='secret')
+        response = self.client.post('/accounts/logout_user/', follow=True)
+        messages = list(response.context['messages'])
+        self.assertTrue(user is None)
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(str(messages[0]), 'log out success')
