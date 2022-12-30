@@ -2,7 +2,7 @@
 
 Celem aplikacji jest zarządzanie grupami, użytkownikami, zleceniami oraz przypisywanie ich do odpowiednich użytkowników.
 
-Baza danych używana w aplikacji to PostgreSQL, narzędzie do testowania Selenium, podejście TDD.
+Baza danych używana w aplikacji to PostgreSQL, narzędzie do testowania wbudowane narzedzia Django, podejście TDD.
 
 Kiedy użytkownik odwiedzi stronę główną nie będąc zalogowanym zostanie przekierowany na stronę rejestracji ( /signup ) z odnośnikiem do logowania ( /login ). Stworzenie konta powoduje wysłanie maila z linkiem aktywującym konto na podany podczas rejestracji adres przez NAZWA MODULU TODO. Po potwierdzeniu rejestracji poprzez email użytkownik może zalogować się w aplikacji.
 
