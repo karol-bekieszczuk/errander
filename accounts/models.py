@@ -1,13 +1,13 @@
 from django.db import models
-from django.utils import timezone
-from django.contrib import admin
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractUser
 
 
-class ErranderUser(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+class User(AbstractUser):
     uid = models.CharField(max_length=10)
     token = models.CharField(max_length=64)
     token_generated_timestamp = models.DateTimeField(auto_now_add=True)
-    account_activation_timestamp = models.DateTimeField(default=None)
-    reset_password_timestamp = models.DateTimeField(default=None)
+    account_activation_timestamp = models.DateTimeField(null=True)
+    reset_password_timestamp = models.DateTimeField(null=True)
+
+    def __str__(self):
+        return self.username
