@@ -70,21 +70,6 @@ TEMPLATES = [
 WSGI_APPLICATION = 'errander.wsgi.application'
 
 
-# Database
-# https://docs.djangoproject.com/en/4.1/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'errander',
-        'USER': 'errander_user',
-        'PASSWORD': 'xeypZVUN!@jzuk7tGSFNBm',
-        'HOST': 'localhost',
-        'PORT': '',
-    }
-}
-
-
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
 
