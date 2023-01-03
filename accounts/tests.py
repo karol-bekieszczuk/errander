@@ -2,6 +2,8 @@ from django.test import TestCase
 from accounts.models import User
 from django.contrib.auth import authenticate
 from emails.tokens import TokenGenerator
+import datetime
+from django.utils import timezone
 
 
 class SignInTest(TestCase):
@@ -104,31 +106,45 @@ class EmailRegistrationTest(TestCase):
         response = self.client.post("/accounts/signup/", self.user2_data, follow=True)
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content, b"Please confirm your email address to complete the registration")
+        messages = list(response.context['messages'])
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(str(messages[0]), 'Please confirm your email address to complete the registration')
 
-    def test_user_registration_using_correct_activation_link(self):
+    def test_user_registration_using_correct_and_unexpired_activation_link(self):
         uid = TokenGenerator().make_uid(self.user)
         token = TokenGenerator().make_token(self.user)
-        response = self.client.get(f"http://127.0.0.1:8000/accounts/activate/{uid}/{token}", {})
-        self.assertEqual(response.content, b"Thank you for your email confirmation. Now you can login your account.")
+        self.assertFalse(self.user.token_expired())
+        response = self.client.get(f"http://127.0.0.1:8000/accounts/activate/{uid}/{token}", {}, follow=True)
+        messages = list(response.context['messages'])
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(str(messages[0]), 'Thank you for your email confirmation. Now you can login your account.')
         user = User.objects.get(id=self.user.id)
         self.assertTrue(user.is_active)
 
     def test_user_registration_using_incorrect_activation_link(self):
-        response = self.client.get("http://127.0.0.1:8000/accounts/activate/lorem/ipsum", {})
-        self.assertEqual(response.content, b"Activation link is invalid!")
+        response = self.client.get("http://127.0.0.1:8000/accounts/activate/lorem/ipsum", {}, follow=True)
+        messages = list(response.context['messages'])
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(str(messages[0]), 'Activation link is invalid!')
         user = User.objects.get(id=self.user.id)
         self.assertFalse(user.is_active)
 
     def test_active_user_can_login(self):
         uid = TokenGenerator().make_uid(self.user)
         token = TokenGenerator().make_token(self.user)
-        self.client.get(f"http://127.0.0.1:8000/accounts/activate/{uid}/{token}", {})
-
+        activate_link_response = self.client.get(
+            f"http://127.0.0.1:8000/accounts/activate/{uid}/{token}",
+            {},
+            follow=True
+        )
+        messages = list(activate_link_response.context['messages'])
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(str(messages[0]), 'Thank you for your email confirmation. Now you can login your account.')
         user_data = {
             "username": self.user1_data["username"],
             "password": self.user1_data["password1"],
         }
+
         response = self.client.post('/accounts/login_user/', user_data, follow=True)
         messages = list(response.context['messages'])
         self.assertEqual(len(messages), 1)
@@ -143,3 +159,14 @@ class EmailRegistrationTest(TestCase):
         messages = list(response.context['messages'])
         self.assertEqual(len(messages), 1)
         self.assertEqual(str(messages[0]), 'logging in error')
+
+    def test_registration_token_expired(self):
+        self.user.token_generated_timestamp = timezone.now() - datetime.timedelta(days=1)
+        self.user.save()
+
+        uid = TokenGenerator().make_uid(self.user)
+        token = TokenGenerator().make_token(self.user)
+        response = self.client.get(f"http://127.0.0.1:8000/accounts/activate/{uid}/{token}", {}, follow=True)
+        messages = list(response.context['messages'])
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(str(messages[0]), 'Token expired, ask your manager for new link')

@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+import datetime
+from django.utils import timezone
 
 
 class User(AbstractUser):
@@ -11,3 +13,6 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.username
+
+    def token_expired(self):
+        return self.token_generated_timestamp <= timezone.now() - datetime.timedelta(days=1)

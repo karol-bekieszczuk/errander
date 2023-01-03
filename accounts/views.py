@@ -1,10 +1,8 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse
 
-from django.contrib.auth import get_user_model
 from emails.forms import SignupForm
 from django.contrib.sites.shortcuts import get_current_site
 from django.utils.encoding import force_str
@@ -34,7 +32,8 @@ def signup(request):
                 mail_subject, message, to=[to_email]
             )
             email.send()
-            return HttpResponse('Please confirm your email address to complete the registration')
+            messages.success(request, 'Please confirm your email address to complete the registration')
+            return redirect('accounts:login_user')
     else:
         form = SignupForm()
     return render(request, 'signup.html', {'form': form})
@@ -47,12 +46,19 @@ def activate(request, uidb64, token):
         user = user_model.objects.get(pk=uid)
     except(TypeError, ValueError, OverflowError, user_model.DoesNotExist):
         user = None
+
     if user is not None and TokenGenerator().check_token(user, token):
+        if user.token_expired():
+            messages.success(request, 'Token expired, ask your manager for new link')
+            return redirect('accounts:login_user')
+            # TODO make custom errors
         user.is_active = True
         user.save()
-        return HttpResponse('Thank you for your email confirmation. Now you can login your account.')
+        messages.success(request, 'Thank you for your email confirmation. Now you can login your account.')
+        return redirect('accounts:login_user')
     else:
-        return HttpResponse('Activation link is invalid!')
+        messages.success(request, 'Activation link is invalid!')
+        return redirect('accounts:login_user')
 
 
 def login_user(request):
