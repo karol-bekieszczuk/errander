@@ -10,6 +10,7 @@ from django.utils.http import urlsafe_base64_decode
 from django.template.loader import render_to_string
 from emails.tokens import TokenGenerator
 from django.core.mail import EmailMessage
+from django.urls import reverse
 
 
 def signup(request):
@@ -36,7 +37,7 @@ def signup(request):
             return redirect('accounts:login_user')
     else:
         form = SignupForm()
-    return render(request, 'signup.html', {'form': form})
+    return render(request, reverse('accounts:signup'), {'form': form})
 
 
 def activate(request, uidb64, token):
@@ -75,6 +76,7 @@ def login_user(request):
             return render(request, 'accounts/login.html', {})
     else:
         return render(request, 'accounts/login.html', {})
+
 
 def logout_user(request):
     if request.user.is_authenticated:

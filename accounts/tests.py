@@ -4,6 +4,7 @@ from django.contrib.auth import authenticate
 from emails.tokens import TokenGenerator
 import datetime
 from django.utils import timezone
+from django.urls import reverse
 
 
 class SignInTest(TestCase):
@@ -39,7 +40,7 @@ class LogInTest(TestCase):
         self.credentials = {
             'username': 'testuser',
             'password': 'secret'}
-        response = self.client.post('/accounts/login_user/', self.credentials, follow=True)
+        response = self.client.post(reverse('accounts:login_user'), self.credentials, follow=True)
         messages = list(response.context['messages'])
         self.assertEqual(len(messages), 1)
         self.assertEqual(str(messages[0]), 'log in success')
@@ -48,7 +49,7 @@ class LogInTest(TestCase):
         self.credentials = {
             'username': 'testuser',
             'password': 'secreassasat'}
-        response = self.client.post('/accounts/login_user/', self.credentials, follow=True)
+        response = self.client.post(reverse('accounts:login_user'), self.credentials, follow=True)
         messages = list(response.context['messages'])
         self.assertEqual(len(messages), 1)
         self.assertEqual(str(messages[0]), 'logging in error')
@@ -64,14 +65,14 @@ class LogOutTest(TestCase):
 
     def test_logout_logged_in_user(self):
         self.client.login(username='testuser', password='secret')
-        response = self.client.post('/accounts/logout_user/', follow=True)
+        response = self.client.post(reverse('accounts:logout_user'), follow=True)
         messages = list(response.context['messages'])
         self.assertFalse(response.wsgi_request.user.is_authenticated)
         self.assertEqual(len(messages), 1)
         self.assertEqual(str(messages[0]), 'log out success')
 
     def test_logout_not_logged_in_user(self):
-        response = self.client.post('/accounts/logout_user/', follow=True)
+        response = self.client.post(reverse('accounts:logout_user'), follow=True)
         messages = list(response.context['messages'])
         self.assertFalse(response.wsgi_request.user.is_authenticated)
         self.assertEqual(len(messages), 1)
@@ -103,7 +104,7 @@ class EmailRegistrationTest(TestCase):
         self.user.save()
 
     def test_sending_email(self):
-        response = self.client.post("/accounts/signup/", self.user2_data, follow=True)
+        response = self.client.post(reverse('accounts:signup'), self.user2_data, follow=True)
 
         self.assertEqual(response.status_code, 200)
         messages = list(response.context['messages'])
@@ -114,7 +115,9 @@ class EmailRegistrationTest(TestCase):
         uid = TokenGenerator().make_uid(self.user)
         token = TokenGenerator().make_token(self.user)
         self.assertFalse(self.user.token_expired())
-        response = self.client.get(f"http://127.0.0.1:8000/accounts/activate/{uid}/{token}", {}, follow=True)
+        response = self.client.post(
+            reverse('accounts:activate', kwargs={'uidb64': uid, 'token': token}), {}, follow=True
+        )
         messages = list(response.context['messages'])
         self.assertEqual(len(messages), 1)
         self.assertEqual(str(messages[0]), 'Thank you for your email confirmation. Now you can login your account.')
@@ -122,7 +125,9 @@ class EmailRegistrationTest(TestCase):
         self.assertTrue(user.is_active)
 
     def test_user_registration_using_incorrect_activation_link(self):
-        response = self.client.get("http://127.0.0.1:8000/accounts/activate/lorem/ipsum", {}, follow=True)
+        response = self.client.post(
+            reverse('accounts:activate', kwargs={'uidb64': 'lorem', 'token': 'ipsum'}), {}, follow=True
+        )
         messages = list(response.context['messages'])
         self.assertEqual(len(messages), 1)
         self.assertEqual(str(messages[0]), 'Activation link is invalid!')
@@ -132,10 +137,8 @@ class EmailRegistrationTest(TestCase):
     def test_active_user_can_login(self):
         uid = TokenGenerator().make_uid(self.user)
         token = TokenGenerator().make_token(self.user)
-        activate_link_response = self.client.get(
-            f"http://127.0.0.1:8000/accounts/activate/{uid}/{token}",
-            {},
-            follow=True
+        activate_link_response = self.client.post(
+            reverse('accounts:activate', kwargs={'uidb64': uid, 'token': token}), {}, follow=True
         )
         messages = list(activate_link_response.context['messages'])
         self.assertEqual(len(messages), 1)
@@ -145,7 +148,7 @@ class EmailRegistrationTest(TestCase):
             "password": self.user1_data["password1"],
         }
 
-        response = self.client.post('/accounts/login_user/', user_data, follow=True)
+        response = self.client.post(reverse('accounts:login_user'), user_data, follow=True)
         messages = list(response.context['messages'])
         self.assertEqual(len(messages), 1)
         self.assertEqual(str(messages[0]), 'log in success')
@@ -155,7 +158,7 @@ class EmailRegistrationTest(TestCase):
             "username": self.user1_data["username"],
             "password": self.user1_data["password1"],
         }
-        response = self.client.post('/accounts/login_user/', user_data, follow=True)
+        response = self.client.post(reverse('accounts:login_user'), user_data, follow=True)
         messages = list(response.context['messages'])
         self.assertEqual(len(messages), 1)
         self.assertEqual(str(messages[0]), 'logging in error')
@@ -166,7 +169,9 @@ class EmailRegistrationTest(TestCase):
 
         uid = TokenGenerator().make_uid(self.user)
         token = TokenGenerator().make_token(self.user)
-        response = self.client.get(f"http://127.0.0.1:8000/accounts/activate/{uid}/{token}", {}, follow=True)
+        response = self.client.get(
+            reverse('accounts:activate', kwargs={'uidb64': uid, 'token': token}), {}, follow=True
+        )
         messages = list(response.context['messages'])
         self.assertEqual(len(messages), 1)
         self.assertEqual(str(messages[0]), 'Token expired, ask your manager for new link')
