@@ -1,0 +1,8 @@
+<h1>Errands</h1>
+<ul>
+    {% for errand in object_list %}
+        <li><a href="{% url 'errands:detail' errand.id %}">{{ errand }}</a></li>
+    {% empty %}
+        <li>No errands assigned.</li>
+    {% endfor %}
+</ul>

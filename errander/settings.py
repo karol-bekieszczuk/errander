@@ -31,6 +31,8 @@ ALLOWED_HOSTS = ['127.0.0.1']
 INSTALLED_APPS = [
     'accounts',
     'emails',
+    'errands',
+    'simple_history',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -47,6 +49,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'simple_history.middleware.HistoryRequestMiddleware',
 ]
 
 ROOT_URLCONF = 'errander.urls'
@@ -117,3 +120,6 @@ EMAIL_PORT = 587
 
 # Custom user model
 AUTH_USER_MODEL = 'accounts.User'
+
+LOGIN_URL = 'accounts/login_user'
+LOGOUT_URL = 'accounts/logout_user'
