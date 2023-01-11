@@ -11,6 +11,11 @@ class User(AbstractUser):
     account_activation_timestamp = models.DateTimeField(null=True)
     reset_password_timestamp = models.DateTimeField(null=True)
 
+    class Meta:
+        permissions = [
+            ("register_user", "User can acces registration form and send invitaion to app"),
+        ]
+
     def __str__(self):
         return self.username
 

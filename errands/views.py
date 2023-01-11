@@ -1,16 +1,14 @@
-# from django.http import HttpResponse
-# from django.contrib.auth.decorators import login_required
-# from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import login_required
 from .models import Errand
-from .forms import DetailEditForm, DetailEditFormView
+from .forms import DetailEditForm
 from django.views import generic
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
 
-
-class UserErrandsList(generic.ListView):
+class UserErrandsList(LoginRequiredMixin, generic.ListView):
     template_name = 'errands/user_errands.html'
     context_object_name = 'user_errands'
 
@@ -18,7 +16,7 @@ class UserErrandsList(generic.ListView):
         return Errand.objects.filter(assigned_users__in=[self.request.user.id])
 
 
-class ErrandDetailView(generic.DetailView):
+class ErrandDetailView(LoginRequiredMixin, generic.DetailView):
     model = Errand
     template_name = 'errands/detail.html'
 
@@ -33,7 +31,7 @@ class ErrandDetailView(generic.DetailView):
         return Errand.objects.filter(assigned_users__in=[self.request.user.id])
 
 
-class DetailView(generic.DetailView):
+class DetailView(LoginRequiredMixin, generic.DetailView):
 
     def get(self, request, *args, **kwargs):
         view = ErrandDetailView.as_view()
@@ -43,7 +41,7 @@ class DetailView(generic.DetailView):
         view = ErrandDetailView.as_view()
         return view(request, *args, **kwargs)
 
-
+@login_required
 def update(request, errand_id):
     if request.method == 'POST':
         errand = get_object_or_404(Errand, pk=errand_id)

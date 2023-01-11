@@ -1,13 +1,8 @@
 from django.test import TestCase
 from accounts.models import User
 from errands.models import Errand
-from django.contrib.auth import authenticate
-from emails.tokens import TokenGenerator
-import datetime
-from django.utils import timezone
-from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.urls import reverse
-from simple_history.utils import update_change_reason
+from .forms import DetailEditForm
 
 
 def create_user(username, email, password):
@@ -110,7 +105,8 @@ class ErrandTest(TestCase):
 
     def testNotLoggedInUsersCantAccessErrands(self):
         response = self.client.get(reverse('errands:user_errands'), follow=True)
-        self.assertEqual(response.status_code, 404)
+        self.assertTemplateUsed('accounts:login_user')
+        self.assertContains(response, 'Login', status_code=200)
 
     def testUsersWithNoErrandsGetsEmptyQueryset(self):
         self.client.login(
@@ -185,3 +181,19 @@ class ErrandTest(TestCase):
 
         response = self.client.get(reverse('errands:detail', args=(user1_errand.id,)), follow=True)
         self.assertContains(response, 'change by user 1')
+
+    def testUserCantUpdateErrandWithoutProvidingReason(self):
+        errand_details_form_data = {
+            'status': 2,
+            'change_reason': '',
+        }
+        details_form = DetailEditForm(data=errand_details_form_data)
+        self.assertFalse(details_form.is_valid())
+
+    def testUserCantUpdateErrandWithoutProvidingStatus(self):
+        errand_details_form_data = {
+            'status': '',
+            'change_reason': 'reason',
+        }
+        details_form = DetailEditForm(data=errand_details_form_data)
+        self.assertFalse(details_form.is_valid())

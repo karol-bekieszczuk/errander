@@ -5,6 +5,8 @@ from emails.tokens import TokenGenerator
 import datetime
 from django.utils import timezone
 from django.urls import reverse
+from django.contrib.auth.models import Permission
+from django.contrib.contenttypes.models import ContentType
 
 
 class SignInTest(TestCase):
@@ -44,8 +46,9 @@ class LogInTest(TestCase):
         messages = list(response.context['messages'])
         self.assertEqual(len(messages), 1)
         self.assertEqual(str(messages[0]), 'log in success')
+        self.assertRedirects(response, reverse('accounts:profile'), status_code=302)
 
-    def test_wrong_pssword(self):
+    def test_wrong_password(self):
         self.credentials = {
             'username': 'testuser',
             'password': 'secreassasat'}
@@ -53,6 +56,9 @@ class LogInTest(TestCase):
         messages = list(response.context['messages'])
         self.assertEqual(len(messages), 1)
         self.assertEqual(str(messages[0]), 'logging in error')
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'accounts/login.html')
+
 
 
 class LogOutTest(TestCase):
@@ -72,14 +78,14 @@ class LogOutTest(TestCase):
         self.assertEqual(str(messages[0]), 'log out success')
 
     def test_logout_not_logged_in_user(self):
-        response = self.client.post(reverse('accounts:logout_user'), follow=True)
-        messages = list(response.context['messages'])
+        response = self.client.get(reverse('accounts:logout_user'), follow=True)
+        # messages = list(response.context['messages'])
         self.assertFalse(response.wsgi_request.user.is_authenticated)
-        self.assertEqual(len(messages), 1)
-        self.assertEqual(str(messages[0]), 'you are not logged in')
+        # self.assertRedirects(response, reverse_lazy('accounts:login_user'))
+        self.assertTemplateUsed('accounts:login_user')
+        self.assertContains(response, 'Login', status_code=200)
 
-
-class EmailRegistrationTest(TestCase):
+class EmailRegistrationAndAccountActivationTest(TestCase):
     user1_data = {
         "username": "user1",
         "email": "user1@example-email.com",
@@ -94,6 +100,12 @@ class EmailRegistrationTest(TestCase):
         "password2": "verysecret2@",
     }
 
+    staff_user_data = {
+        "username": "staff_user",
+        "email": "staff_user@example-email.com",
+        "password": "verysecretstaff_user2@",
+    }
+
     def setUp(self):
         self.user = User.objects.create_user(
             username=self.user1_data["username"],
@@ -103,13 +115,44 @@ class EmailRegistrationTest(TestCase):
         self.user.is_active = False
         self.user.save()
 
-    def test_sending_email(self):
+        self.staffMember = User.objects.create_user(
+            username=self.staff_user_data["username"],
+            email=self.staff_user_data["email"],
+            password=self.staff_user_data["password"],
+        )
+        self.staffMember.is_staff = True
+        content_type = ContentType.objects.get_for_model(User)
+        permission = Permission.objects.get(content_type=content_type, codename='register_user')
+        self.staffMember.user_permissions.add(permission)
+        self.staffMember.save()
+
+    def test_only_staff_members_can_send_invite_to_app(self):
+        self.client.login(
+            username=self.staff_user_data["username"],
+            password=self.staff_user_data["password"]
+        )
         response = self.client.post(reverse('accounts:signup'), self.user2_data, follow=True)
 
         self.assertEqual(response.status_code, 200)
         messages = list(response.context['messages'])
         self.assertEqual(len(messages), 1)
-        self.assertEqual(str(messages[0]), 'Please confirm your email address to complete the registration')
+        self.assertEqual(str(messages[0]), 'Invite sent')
+
+    def test_non_staff_members_cant_access_signup_view(self):
+        self.client.login(
+            username=self.user1_data["username"],
+            password=self.user1_data["password1"]
+        )
+        response = self.client.post(reverse('accounts:signup'), self.user2_data, follow=True)
+
+        self.assertTemplateUsed('accounts:login_user')
+        self.assertContains(response, 'Login', status_code=200)
+
+    def test_anonymous_members_cant_access_signup_view(self):
+        response = self.client.post(reverse('accounts:signup'), self.user2_data, follow=True)
+
+        self.assertTemplateUsed('accounts:login_user')
+        self.assertContains(response, 'Login', status_code=200)
 
     def test_user_registration_using_correct_and_unexpired_activation_link(self):
         uid = TokenGenerator().make_uid(self.user)

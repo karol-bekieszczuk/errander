@@ -121,5 +121,5 @@ EMAIL_PORT = 587
 # Custom user model
 AUTH_USER_MODEL = 'accounts.User'
 
-LOGIN_URL = 'accounts/login_user'
-LOGOUT_URL = 'accounts/logout_user'
+LOGIN_URL = '/accounts/login_user'
+LOGOUT_URL = '/accounts/logout_user'
