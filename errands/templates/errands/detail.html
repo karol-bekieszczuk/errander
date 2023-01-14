@@ -1,12 +1,15 @@
+{% extends 'base.html' %}
+{% block content %}
 <h1>Name: {{errand.name}}</h1>
 <h2>Desc: {{errand.description}}</h2>
 <h2>Status: {{status_string}}</h2>
 <h2>Last change note: {{last_change_reason}}</h2>
 
-<form action="{% url 'errands:update' errand.id %}" method="post" xmlns="http://www.w3.org/1999/html">
+<form action="{% url 'errands:update' errand.id %}" method="post">
 {% csrf_token %}
 <fieldset>
     {{ form }}
 </fieldset>
     <input type="submit" value="Update">
 </form>
+{% endblock %}

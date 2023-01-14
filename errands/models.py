@@ -6,9 +6,10 @@ from simple_history.models import HistoricalRecords
 class Errand(models.Model):
     STATUSES = (
         (0, 'Discarded'),
-        (1, 'Started'),
-        (2, 'In progress'),
-        (3, 'Done')
+        (1, 'Pending'),
+        (2, 'Accepted'),
+        (3, 'In progress'),
+        (4, 'Done')
     )
 
     assigned_users = models.ManyToManyField(User)
@@ -19,5 +20,12 @@ class Errand(models.Model):
         m2m_fields=[assigned_users]
     )
 
+    class Meta:
+        permissions = [
+            ("create", "User can create Errand object"),
+            ("assign_users", "User can add users to Errand object")
+        ]
+
     def __str__(self):
-        return f'Name: {self.name}\nDesc:{self.description}'
+        return f'Name: {self.name}\nDesc: {self.description}'
+

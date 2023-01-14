@@ -1,11 +1,11 @@
 from django.contrib import admin
 from simple_history.admin import SimpleHistoryAdmin
 from .models import Errand
-from .forms import CustomAdminErrandForm
+from .forms import CreateErrandForm
 
 
 class ErrandAdmin(SimpleHistoryAdmin):
-    form = CustomAdminErrandForm
+    form = CreateErrandForm
 
     def save_model(self, request, obj, form, change):
         obj._change_reason = form.cleaned_data["change_reason"]
