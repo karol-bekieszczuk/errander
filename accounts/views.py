@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from .forms import SignupForm
+from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.sites.shortcuts import get_current_site
 from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode
@@ -63,9 +64,10 @@ def activate(request, uidb64, token):
 
 
 def login_user(request):
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
+    form = AuthenticationForm(data=request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        username = form.cleaned_data['username']
+        password = form.cleaned_data['password']
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
@@ -75,7 +77,8 @@ def login_user(request):
             messages.success(request, 'logging in error')
             return render(request, 'accounts/login.html', {})
     else:
-        return render(request, 'accounts/login.html', {})
+        # form = LoginForm()
+        return render(request, 'accounts/login.html', {'form':form})
 
 
 @login_required

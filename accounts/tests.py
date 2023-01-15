@@ -53,11 +53,9 @@ class LogInTest(TestCase):
             'username': 'testuser',
             'password': 'secreassasat'}
         response = self.client.post(reverse('accounts:login_user'), self.credentials, follow=True)
-        messages = list(response.context['messages'])
-        self.assertEqual(len(messages), 1)
-        self.assertEqual(str(messages[0]), 'logging in error')
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'accounts/login.html')
+        self.assertContains(response, 'Please enter a correct username and password. Note that both fields may be case-sensitive.')
 
 
 
@@ -202,9 +200,10 @@ class EmailRegistrationAndAccountActivationTest(TestCase):
             "password": self.user1_data["password1"],
         }
         response = self.client.post(reverse('accounts:login_user'), user_data, follow=True)
-        messages = list(response.context['messages'])
-        self.assertEqual(len(messages), 1)
-        self.assertEqual(str(messages[0]), 'logging in error')
+        self.assertContains(response, "Please enter a correct username and password. Note that both fields may be case-sensitive.")
+        # messages = list(response.context['messages'])
+        # self.assertEqual(len(messages), 1)
+        # self.assertEqual(str(messages[0]), 'logging in error')
 
     def test_registration_token_expired(self):
         self.user.token_generated_timestamp = timezone.now() - datetime.timedelta(days=1)
