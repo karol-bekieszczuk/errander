@@ -2,19 +2,17 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
-
-from emails.forms import SignupForm
+from django.http import HttpResponseRedirect
+from django.urls import reverse
+from .forms import SignupForm
 from django.contrib.sites.shortcuts import get_current_site
 from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode
 from django.template.loader import render_to_string
 from emails.tokens import TokenGenerator
 from django.core.mail import EmailMessage
-from django.urls import reverse
 
-from django.urls import reverse_lazy
-
-
+@login_required
 @permission_required('accounts.register_user')
 def signup(request):
     if request.method == 'POST':
@@ -25,7 +23,7 @@ def signup(request):
             user.save()
             current_site = get_current_site(request)
             mail_subject = 'Activation link has been sent to your email id'
-            message = render_to_string('acc_active_email.html', {
+            message = render_to_string('emails/templates/acc_active_email.html', {
                 'user': user,
                 'domain': current_site.domain,
                 'uid': TokenGenerator().make_uid(user),
@@ -37,7 +35,7 @@ def signup(request):
             )
             email.send()
             messages.success(request, 'Invite sent')
-            return redirect('accounts:signup')
+            return HttpResponseRedirect(reverse('accounts:signup'))
     else:
         form = SignupForm()
     return render(request, 'accounts/signup.html', {'form': form})
@@ -55,7 +53,6 @@ def activate(request, uidb64, token):
         if user.token_expired():
             messages.success(request, 'Token expired, ask your manager for new link')
             return redirect('accounts:login_user')
-            # TODO make custom errors
         user.is_active = True
         user.save()
         messages.success(request, 'Thank you for your email confirmation. Now you can login your account.')
@@ -79,6 +76,7 @@ def login_user(request):
             return render(request, 'accounts/login.html', {})
     else:
         return render(request, 'accounts/login.html', {})
+
 
 @login_required
 def logout_user(request):

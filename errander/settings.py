@@ -30,7 +30,6 @@ ALLOWED_HOSTS = ['127.0.0.1']
 
 INSTALLED_APPS = [
     'accounts',
-    'emails',
     'errands',
     'simple_history',
     'django.contrib.admin',

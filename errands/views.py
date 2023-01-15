@@ -80,17 +80,3 @@ def update(request, errand_id):
             return HttpResponseRedirect(reverse('errands:detail', args=[errand.id]))
     else:
         return render(request, reverse('errands:detail'), {'errand_id': errand_id})
-
-
-# @permission_required('errands.assign_users')
-# def add_users_to_errand(request, errand_id):
-#     if request.method == 'POST':
-#         errand = get_object_or_404(Errand, pk=errand_id)
-#         form = AddUsersToErrandForm(request.POST)
-#         if form.is_valid():
-#             errand._change_reason = "added user to errand"
-#             errand.save()
-#             messages.success(request, message='Errand updated')
-#             return HttpResponseRedirect(reverse('errands:add_users_to_errand', args=[errand_id]))
-#     else:
-#         return render(request, reverse('errands:detail'), {'errand_id': errand_id})
