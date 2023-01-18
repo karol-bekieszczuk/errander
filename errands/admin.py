@@ -2,6 +2,7 @@ from django.contrib import admin
 from simple_history.admin import SimpleHistoryAdmin
 from .models import Errand
 from .forms import CreateErrandForm
+from simple_history.utils import update_change_reason
 
 
 class ErrandAdmin(SimpleHistoryAdmin):
@@ -12,13 +13,13 @@ class ErrandAdmin(SimpleHistoryAdmin):
         super().save_model(request, obj, form, change)
 
     def delete_model(self, request, obj):
-        obj._change_reason = "deletion"
         obj.delete()
+        update_change_reason(obj, "delete")
 
     def delete_queryset(self, request, queryset):
         for errand in queryset:
-            errand._change_reason = "deletion"
             errand.delete()
+            update_change_reason(errand, "delete")
 
 
 admin.site.register(Errand, ErrandAdmin)

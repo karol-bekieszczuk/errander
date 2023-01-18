@@ -1,5 +1,8 @@
 {% extends 'base.html' %}
 {% block content %}
+{% if perms.errands.create %}
+    <a href="{% url 'errands:new' %}">New errand</a>
+{% endif %}
 <h1>Errands</h1>
 <ul>
     {% for errand in object_list %}

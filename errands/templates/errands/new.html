@@ -1,8 +1,25 @@
 {% extends 'base.html' %}
+{%block extend_header%}
+{% load static %}
+<link rel="stylesheet" href="{% static 'errands/style.css' %}" />
+{%endblock%}
 {% block content %}
-<form action="{% url 'errands:create' %}" method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <input type="submit" value="Save">
-</form>
+<div class="container">
+    <form action="{% url 'errands:create' %}" method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+
+        <input type="submit" value="Save">
+    </form>
+</div>
+
+<div id="map"></div>
+
+{% endblock %}
+
+{% block extend_footer %}
+    <script type="text/javascript">
+        var google_api_key = "{{google_api_key|safe}}";
+    </script>
+    <script src="{% static 'errands/google_autocomplete_and_map.js' %}"></script>
 {% endblock %}

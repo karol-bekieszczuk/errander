@@ -5,19 +5,18 @@ from permissionedforms import PermissionedForm
 
 
 class CreateErrandForm(forms.ModelForm):
-
     class Meta:
         model = Errand
         exclude = ['status']
         widgets = {
-            'assigned_users': forms.CheckboxSelectMultiple
+            'assigned_users': forms.CheckboxSelectMultiple,
         }
-
-    change_reason = forms.CharField(max_length=100)
 
     def __init__(self, *args, **kwargs):
         super(CreateErrandForm, self).__init__(*args, **kwargs)
-        self.fields['change_reason'].required = False
+        self.fields['address'].widget.attrs['id'] = 'autocomplete'
+        self.fields['address'].widget.attrs['name'] = 'autocomplete'
+        self.fields['geolocation'].widget.attrs['readonly'] = True
 
 
 class DetailEditForm(PermissionedForm):

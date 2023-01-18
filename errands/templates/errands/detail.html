@@ -3,8 +3,9 @@
 <h1>Name: {{errand.name}}</h1>
 <h2>Desc: {{errand.description}}</h2>
 <h2>Status: {{status_string}}</h2>
-<h2>Last change note: {{last_change_reason}}</h2>
-
+{% if last_change_reason is not None %}
+    <h2>Last change note: {{last_change_reason}}</h2>
+{% endif %}
 <form action="{% url 'errands:update' errand.id %}" method="post">
 {% csrf_token %}
 <fieldset>

@@ -190,22 +190,6 @@ class ErrandTest(TestCase):
         response = self.client.get(reverse('errands:detail', args=(user1_errand.id,)), follow=True)
         self.assertContains(response, 'change by user 1')
 
-    def test_user_cant_update_errand_without_providing_reason(self):
-        errand_details_form_data = {
-            'status': 2,
-            'change_reason': '',
-        }
-        details_form = DetailEditForm(data=errand_details_form_data)
-        self.assertFalse(details_form.is_valid())
-
-    def test_user_cant_update_errand_without_providing_status(self):
-        errand_details_form_data = {
-            'status': '',
-            'change_reason': 'reason',
-        }
-        details_form = DetailEditForm(data=errand_details_form_data)
-        self.assertFalse(details_form.is_valid())
-
     def test_only_users_with_correct_permission_can_create_errands(self):
         self.client.login(
             username=user1_with_errands_data['username'],
@@ -216,7 +200,8 @@ class ErrandTest(TestCase):
             'assigned_users': [self.user1_with_errands.id, ],
             'name': 'errand created with correct permission',
             'description': 'test errand description',
-            'change_reason': 'created',
+            'address': 'test address',
+            'geolocation': '12,124|13.125',
         }
         response = self.client.post(reverse('errands:create'), errand_details_form_data, follow=True)
 
@@ -233,7 +218,8 @@ class ErrandTest(TestCase):
             'assigned_users': [self.user1_with_errands.id, ],
             'name': 'errand created with correct permission',
             'description': 'test errand description',
-            'change_reason': 'created',
+            'address': 'test address',
+            'geolocation': '12,124|13.125',
         }
         response = self.client.post(reverse('errands:create'), errand_details_form_data, follow=True)
         self.assertEqual(response.status_code, 403)
@@ -345,53 +331,73 @@ class FormsTest(TestCase):
     def test_correctly_filled_out_creation_form_is_valid(self):
         errand_details_form_data = {
             'assigned_users': [self.user1.id, ],
-            'name': 'errand created with correct permission',
+            'name': 'test name',
             'description': 'test errand description',
-            'change_reason': 'created',
+            'address': 'test address',
+            'geolocation': '12,124|13.125',
         }
         form = CreateErrandForm(errand_details_form_data)
         self.assertTrue(form.is_valid())
 
-    def test_form_without_assigned_users_is_not_valid(self):
+    def test_create_form_without_assigned_users_is_not_valid(self):
         errand_details_form_data = {
-            'assigned_users': [ ],
-            'name': 'errand created with correct permission',
+            'assigned_users': [],
+            'name': 'test name',
             'description': 'test errand description',
-            'change_reason': 'created',
+            'address': 'test address',
+            'geolocation': '12,124|13.125',
         }
         form = CreateErrandForm(errand_details_form_data)
         self.assertFormError(form, field='assigned_users', errors='This field is required.')
+        self.assertFalse(form.is_valid())
 
-    def test_form_without_name_is_not_valid(self):
+    def test_create_form_without_name_is_not_valid(self):
         errand_details_form_data = {
             'assigned_users': [self.user1.id, ],
             'name': '',
             'description': 'test errand description',
-            'change_reason': 'created',
+            'address': 'test address',
+            'geolocation': '12,124|13.125',
         }
         form = CreateErrandForm(errand_details_form_data)
         self.assertFormError(form, field='name', errors='This field is required.')
+        self.assertFalse(form.is_valid())
 
-    def test_form_without_description_is_not_valid(self):
+    def test_create_form_without_description_is_not_valid(self):
         errand_details_form_data = {
             'assigned_users': [self.user1.id, ],
-            'name': 'errand created with correct permission',
+            'name': 'test name',
             'description': '',
-            'change_reason': 'created',
+            'address': 'test address',
+            'geolocation': '12,124|13.125',
         }
         form = CreateErrandForm(errand_details_form_data)
         self.assertFormError(form, field='description', errors='This field is required.')
+        self.assertFalse(form.is_valid())
 
-    def test_creation_form_without_change_reason_is_valid(self):
+    def test_create_form_without_address_is_not_valid(self):
         errand_details_form_data = {
             'assigned_users': [self.user1.id, ],
-            'name': 'errand created with correct permission',
+            'name': 'test name',
             'description': 'test errand description',
-            'change_reason': '',
+            'address': '',
+            'geolocation': '12,124|13.125',
         }
         form = CreateErrandForm(errand_details_form_data)
-        self.assertFormError(form, field='change_reason', errors=None)
-        self.assertTrue(form.is_valid())
+        self.assertFormError(form, field='address', errors='This field is required.')
+        self.assertFalse(form.is_valid())
+
+    def test_create_form_without_geolocation_is_not_valid(self):
+        errand_details_form_data = {
+            'assigned_users': [self.user1.id, ],
+            'name': 'test name',
+            'description': 'test errand description',
+            'address': 'test address',
+            'geolocation': '',
+        }
+        form = CreateErrandForm(errand_details_form_data)
+        self.assertFormError(form, field='geolocation', errors='This field is required.')
+        self.assertFalse(form.is_valid())
 
     def test_correctly_filled_out_edit_form_is_valid(self):
         errand_details_form_data = {
@@ -401,3 +407,32 @@ class FormsTest(TestCase):
         }
         form = DetailEditForm(data=errand_details_form_data, for_user=self.user_with_add_user_perm)
         self.assertTrue(form.is_valid())
+
+    def test_assigned_users_are_not_needed_for_edit_form_to_be_valid(self):
+        errand_details_form_data = {
+            'status': 1,
+            'change_reason': 'edit',
+            'assigned_users': [],
+        }
+        form = DetailEditForm(data=errand_details_form_data, for_user=self.user_with_add_user_perm)
+        self.assertTrue(form.is_valid())
+
+    def test_user_cant_update_errand_without_providing_reason(self):
+        errand_details_form_data = {
+            'status': 2,
+            'change_reason': '',
+            'assigned_users': [self.user1.id, ],
+        }
+        details_form = DetailEditForm(data=errand_details_form_data)
+        self.assertFormError(details_form, field='change_reason', errors='This field is required.')
+        self.assertFalse(details_form.is_valid())
+
+    def test_user_cant_update_errand_without_providing_status(self):
+        errand_details_form_data = {
+            'status': '',
+            'change_reason': 'reason',
+            'assigned_users': [self.user1.id, ],
+        }
+        details_form = DetailEditForm(data=errand_details_form_data)
+        self.assertFormError(details_form, field='status', errors='This field is required.')
+        self.assertFalse(details_form.is_valid())

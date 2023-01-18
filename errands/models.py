@@ -16,6 +16,8 @@ class Errand(models.Model):
     name = models.CharField(max_length=50, null=False)
     description = models.CharField(max_length=200, null=False)
     status = models.IntegerField(default=1, choices=STATUSES, null=False)
+    address = models.CharField(max_length=200, null=False)
+    geolocation = models.CharField(max_length=200, null=False)
     history = HistoricalRecords(
         m2m_fields=[assigned_users]
     )

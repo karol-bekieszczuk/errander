@@ -8,6 +8,8 @@ from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.conf import settings
+from simple_history.utils import update_change_reason
 
 
 class CreateErrandView(LoginRequiredMixin, generic.CreateView):
@@ -17,6 +19,11 @@ class CreateErrandView(LoginRequiredMixin, generic.CreateView):
     @method_decorator(permission_required('errands.create', raise_exception=True))
     def dispatch(self, *args, **kwargs):
         return super(CreateErrandView, self).dispatch(*args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["google_api_key"] = settings.GOOGLE_API_KEY
+        return context
 
 
 class UserErrandsList(LoginRequiredMixin, generic.ListView):
@@ -58,10 +65,14 @@ def create(request):
         form = CreateErrandForm(request.POST)
         if form.is_valid():
             form.save()
-            messages.error(request, message='Errand created')
+            messages.success(request, message='Errand created')
             return HttpResponseRedirect(reverse('errands:detail', args=[form.instance.id]))
     else:
-        return redirect('errands:create')
+        key = settings.GOOGLE_API_KEY
+        context = {
+            'key': key,
+        }
+        return redirect('errands:create', context)
 
 
 @login_required
@@ -70,12 +81,12 @@ def update(request, errand_id):
         errand = get_object_or_404(Errand, pk=errand_id)
         form = DetailEditForm(request.POST)
         if form.is_valid():
-            if form.cleaned_data['assigned_users'] and request.user.has_perm('errands.assign_users'):
+            if request.user.has_perm('errands.assign_users') and form.cleaned_data['assigned_users']:
                 for u in form.cleaned_data['assigned_users']:
                     errand.assigned_users.add(u)
             errand.status = request.POST['status']
-            errand._change_reason = request.POST['change_reason']
             errand.save()
+            update_change_reason(errand, request.POST['change_reason'])
             messages.success(request, message='Errand updated')
             return HttpResponseRedirect(reverse('errands:detail', args=[errand.id]))
     else:
