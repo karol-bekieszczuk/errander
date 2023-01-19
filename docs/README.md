@@ -21,12 +21,5 @@ Modele:
 User
 Errand
 
-Technology stack:
-
-Python wersja 3.10.6
-Django wersja 4.1.2
-django-simple-history 3.2.0
-django-permissionedforms 0.1
-
 TODO
 rewrite tests f.e. with pytest-djang

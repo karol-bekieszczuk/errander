@@ -6,7 +6,7 @@ __pycache__
 db.sqlite3
 media
 local/
-env/
+venv/
 errander/settings.ini
 
 # Backup files # 
