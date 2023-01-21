@@ -305,6 +305,12 @@ class FormsTest(TestCase):
             password=user2_with_errands_data['password']
         )
 
+        self.user_with_create_errand_perm = create_user(
+            username=user_without_errands_data['username'],
+            email=user_without_errands_data['email'],
+            password=user_without_errands_data['password']
+        )
+
         self.errands_with_assigned_user1 = [
             create_errand(
                 name='test name1',
@@ -436,3 +442,23 @@ class FormsTest(TestCase):
         details_form = DetailEditForm(data=errand_details_form_data)
         self.assertFormError(details_form, field='status', errors='This field is required.')
         self.assertFalse(details_form.is_valid())
+
+    def test_user_cant_assign_users_without_proper_permission_but_form_remains_valid(self):
+        errand_details_form_data = {
+            'status': 3,
+            'change_reason': 'assign user',
+            'assigned_users': [self.user1.id, ],
+        }
+        details_form = DetailEditForm(data=errand_details_form_data, for_user=self.user1)
+        self.assertNotIn('assigned_users', details_form.fields.keys())
+        self.assertTrue(details_form.is_valid())
+
+    def test_user_with_proper_permission_can_assign_users(self):
+        errand_details_form_data = {
+            'status': 3,
+            'change_reason': 'assign user',
+            'assigned_users': [self.user1.id, ],
+        }
+        details_form = DetailEditForm(data=errand_details_form_data, for_user=self.user_with_add_user_perm)
+        self.assertIn('assigned_users', details_form.fields.keys())
+        self.assertTrue(details_form.is_valid())
