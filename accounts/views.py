@@ -13,6 +13,7 @@ from django.template.loader import render_to_string
 from emails.tokens import TokenGenerator
 from django.core.mail import EmailMessage
 
+
 @login_required
 @permission_required('accounts.register_user')
 def signup(request):
@@ -77,8 +78,7 @@ def login_user(request):
             messages.success(request, 'logging in error')
             return render(request, 'accounts/login.html', {})
     else:
-        # form = LoginForm()
-        return render(request, 'accounts/login.html', {'form':form})
+        return render(request, 'accounts/login.html', {'form': form})
 
 
 @login_required
@@ -90,4 +90,4 @@ def logout_user(request):
 
 @login_required
 def profile(request):
-    return render(request, 'accounts/profile.html')
+    return render(request, 'accounts/profile.html', {})

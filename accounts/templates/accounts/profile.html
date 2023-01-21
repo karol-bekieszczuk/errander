@@ -1,13 +1,11 @@
 {% extends 'base.html' %}
 
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Profile</title>
-</head>
-<body>
+{% block title %}Profile{% endblock %}
+
 {% block content %}
-  <h1>TODO</h1>
-</body>
+
+<h1>Hi {{user.username}}</h1>
+<a href="{% url 'password_change' %}">Change password</a>
+<a href="{% url 'password_reset' %}">Reset password</a>
+
 {% endblock %}
-</html>

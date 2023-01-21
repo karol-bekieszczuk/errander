@@ -5,6 +5,7 @@ from django.utils import timezone
 
 
 class User(AbstractUser):
+    email = models.EmailField(blank=False, null=False, unique=True, max_length=254, verbose_name='email address')
     uid = models.CharField(max_length=10)
     token = models.CharField(max_length=64)
     token_generated_timestamp = models.DateTimeField(auto_now_add=True)
