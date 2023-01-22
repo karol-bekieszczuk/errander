@@ -1,8 +1,14 @@
 {% extends 'base.html' %}
+
+{% block extend_header %}
+{% include 'base_js_maps.html' %}
+{% endblock %}
+
 {% block content %}
 <h1>Name: {{errand.name}}</h1>
 <h2>Desc: {{errand.description}}</h2>
 <h2>Status: {{status_string}}</h2>
+<h2>Desc: {{errand.address}}</h2>
 {% if last_change_reason is not None %}
     <h2>Last change note: {{last_change_reason}}</h2>
 {% endif %}
@@ -11,6 +17,9 @@
 <fieldset>
     {{ form }}
 </fieldset>
-    <input type="submit" value="Update">
+    <button type="submit">Update</button>
 </form>
+</br>
+
+<div id="map"></div>
 {% endblock %}

@@ -13,10 +13,21 @@ function initialize() {
     var input = document.getElementById('autocomplete');
     var autocomplete = new google.maps.places.Autocomplete(input);
 
+    let lat = 0;
+    let lng = 0;
+
+    if (errand_address != '' && geolocation != ''){
+        var latlng = geolocation.split('|');
+        lat = Number(latlng[0])
+        lng = Number(latlng[1])
+        initMap(lat,lng,errand_address)
+    }
+
     autocomplete.addListener('place_changed', function () {
         var place = autocomplete.getPlace();
-        let lat = place.geometry['location'].lat();
-        let lng = place.geometry['location'].lng();
+        lat = place.geometry['location'].lat();
+        lng = place.geometry['location'].lng();
+
         $('#latitude').val(lat);
         $('#longitude').val(lng);
 

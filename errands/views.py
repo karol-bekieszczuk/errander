@@ -22,7 +22,7 @@ class CreateErrandView(LoginRequiredMixin, generic.CreateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["google_api_key"] = settings.GOOGLE_API_KEY
+        context['google_api_key'] = settings.GOOGLE_API_KEY
         return context
 
 
@@ -43,6 +43,7 @@ class ErrandDetailView(LoginRequiredMixin, generic.DetailView):
         context['form'] = DetailEditForm(for_user=self.request.user)
         context['status_string'] = Errand.STATUSES[context['errand'].status][1]
         context['last_change_reason'] = context['errand'].history.first().history_change_reason
+        context['google_api_key'] = settings.GOOGLE_API_KEY
         return context
 
     def get_queryset(self):

@@ -1,28 +1,18 @@
 {% extends 'base.html' %}
-{%block extend_header%}
-{% load static %}
-<link rel="stylesheet" href="{% static 'errands/style.css' %}" />
 
-<script src="https://code.jquery.com/jquery-3.4.1.js"></script>
-<script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
-{%endblock%}
+{% block extend_header %}
+{% include 'base_js_maps.html' %}
+{% endblock %}
+
 {% block content %}
 <div class="container">
     <form action="{% url 'errands:create' %}" method="post">
         {% csrf_token %}
         {{ form.as_p }}
 
-        <input type="submit" value="Save">
+        <button type="submit">Save</button>
     </form>
 </div>
 
 <div id="map"></div>
-
-{% endblock %}
-
-{% block extend_footer %}
-    <script type="text/javascript">
-        var google_api_key = "{{google_api_key|safe}}";
-    </script>
-    <script src="{% static 'errands/google_autocomplete_and_map.js' %}"></script>
 {% endblock %}
