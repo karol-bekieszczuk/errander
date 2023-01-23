@@ -22,7 +22,7 @@
         {% endif %}
         {% if user.is_authenticated %}
             <a href="{% url 'accounts:logout_user' %}">logout</a>
-            <a href="{% url 'errands:user_errands' %}">errands</a>
+            <a href="{% url 'errands:index' %}">errands</a>
         {% endif %}
         {% block content %}
         {% endblock %}

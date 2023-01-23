@@ -35,10 +35,15 @@ user2_with_errands_data = {
     "email": "user2@example-email.com",
     "password": "verysecret2@"
 }
-user_without_errands_data = {
+user3 = {
     "username": "user3",
     "email": "user3@example-email.com",
     "password": "verysecret3@"
+}
+user_without_errands_data = {
+    "username": "user4",
+    "email": "user4@example-email.com",
+    "password": "verysecret4@"
 }
 class ErrandTest(TestCase):
 
@@ -60,6 +65,11 @@ class ErrandTest(TestCase):
             email=user_without_errands_data['email'],
             password=user_without_errands_data['password']
         )
+        self.user_with_permission_to_view_and_list_all_errands = create_user(
+            username=user3['username'],
+            email=user3['email'],
+            password=user3['password']
+        )
 
         #create errands with assigned users
         self.errands_with_assigned_user1 = [
@@ -80,18 +90,21 @@ class ErrandTest(TestCase):
             ]
         )
 
-        self.user1_with_errands.is_staff = True
         content_type = ContentType.objects.get_for_model(Errand)
         permission = Permission.objects.get(content_type=content_type, codename='create')
         self.user1_with_errands.user_permissions.add(permission)
         self.user1_with_errands.save()
+
+        permission = Permission.objects.get(content_type=content_type, codename='can_list_and_view_every_errand')
+        self.user_with_permission_to_view_and_list_all_errands.user_permissions.add(permission)
+        self.user_with_permission_to_view_and_list_all_errands.save()
 
     def test_user_can_list_assigned_errands(self):
         self.client.login(
             username=user1_with_errands_data['username'],
             password=user1_with_errands_data['password']
         )
-        response = self.client.get(reverse('errands:user_errands'), follow=True)
+        response = self.client.get(reverse('errands:index'), follow=True)
 
         queryset = [
             Errand(
@@ -109,10 +122,30 @@ class ErrandTest(TestCase):
         queryset[0].assigned_users.set([self.user1_with_errands.id])
         queryset[1].assigned_users.set([self.user2_with_errands.id])
 
-        self.assertQuerysetEqual(list(response.context['user_errands']), queryset)
+        self.assertQuerysetEqual(list(response.context['errands']), queryset)
+
+    def user_without_proper_permission_cant_view_all_errands(self):
+        new_errand = create_errand('another', 'errand')
+        self.client.login(
+            username=user1_with_errands_data['username'],
+            password=user1_with_errands_data['password']
+        )
+        response = self.client.get(reverse('errands:index'), follow=True)
+        self.assertNotContains(response, new_errand.name)
+        self.assertNotEqual(response.context['errands'].count(), Errand.objects.all().count())
+
+    def user_with_proper_permission_can_view_all_errands(self):
+        new_errand = create_errand('another', 'errand')
+        self.client.login(
+            username=user3['username'],
+            password=user3['password']
+        )
+        response = self.client.get(reverse('errands:index'), follow=True)
+        self.assertContains(response, new_errand.name)
+        self.assertEqual(response.context['errands'].count(), Errand.objects.all().count())
 
     def test_not_logged_in_users_cant_access_errands(self):
-        response = self.client.get(reverse('errands:user_errands'), follow=True)
+        response = self.client.get(reverse('errands:index'), follow=True)
         self.assertTemplateUsed('accounts:login_user')
         self.assertContains(response, 'Login', status_code=200)
 
@@ -121,8 +154,8 @@ class ErrandTest(TestCase):
             username=user_without_errands_data['username'],
             password=user_without_errands_data['password']
         )
-        response = self.client.get(reverse('errands:user_errands'), follow=True)
-        self.assertQuerysetEqual(response.context['user_errands'], [])
+        response = self.client.get(reverse('errands:index'), follow=True)
+        self.assertQuerysetEqual(response.context['errands'], [])
         self.assertContains(response, "No errands assigned.")
 
     def test_user_can_view_details_of_errand_he_is_assigned_to(self):
@@ -131,19 +164,28 @@ class ErrandTest(TestCase):
             password=user1_with_errands_data['password']
         )
         user_errand = Errand.objects.filter(assigned_users=self.user1_with_errands.id).first()
-        url = reverse('errands:detail', args=(user_errand.id,))
-        response = self.client.get(url)
-        self.assertContains(response, user_errand.name)
+        response = self.client.get(reverse('errands:detail', args=(user_errand.id,)), follow=True)
 
-    def test_user_cant_view_errand_he_is_not_assigned_to(self):
+        self.assertEqual(response.context['errand'].name, user_errand.name)
+
+    def test_user_without_proper_permission_cant_view_errand_he_is_not_assigned_to(self):
         self.client.login(
             username=user_without_errands_data['username'],
             password=user_without_errands_data['password']
         )
         user_errand = Errand.objects.filter(assigned_users=self.user1_with_errands.id).first()
-        url = reverse('errands:detail', args=(user_errand.id,))
-        response = self.client.get(url)
+        response = self.client.get(reverse('errands:detail', args=(user_errand.id,)), follow=True)
         self.assertEqual(response.status_code, 404)
+
+    def test_user_with_proper_permission_can_view_errand_he_is_not_assigned_to(self):
+        self.client.login(
+            username=user3['username'],
+            password=user3['password']
+        )
+        user_errand = Errand.objects.filter(assigned_users=self.user1_with_errands.id).first()
+        response = self.client.get(reverse('errands:detail', args=(user_errand.id,)), follow=True)
+
+        self.assertEqual(response.context['errand'].name, user_errand.name)
 
     def test_user_can_edit_errand_he_is_assigned_to(self):
         self.client.login(

@@ -25,12 +25,14 @@ class CreateErrandView(LoginRequiredMixin, generic.CreateView):
         context['google_api_key'] = settings.GOOGLE_API_KEY
         return context
 
-
 class UserErrandsList(LoginRequiredMixin, generic.ListView):
-    template_name = 'errands/user_errands.html'
-    context_object_name = 'user_errands'
+    template_name = 'errands/index.html'
+    context_object_name = 'errands'
 
     def get_queryset(self):
+        if self.request.user.has_perm('errands.can_list_and_view_every_errand'):
+            return Errand.objects.all()
+
         return Errand.objects.filter(assigned_users__in=[self.request.user.id])
 
 
@@ -44,9 +46,13 @@ class ErrandDetailView(LoginRequiredMixin, generic.DetailView):
         context['status_string'] = Errand.STATUSES[context['errand'].status][1]
         context['last_change_reason'] = context['errand'].history.first().history_change_reason
         context['google_api_key'] = settings.GOOGLE_API_KEY
+
         return context
 
     def get_queryset(self):
+        if self.request.user.has_perm('errands.can_list_and_view_every_errand'):
+            return Errand.objects.filter(id=self.kwargs['pk'])
+
         return Errand.objects.filter(assigned_users__in=[self.request.user.id])
 
 
@@ -69,11 +75,7 @@ def create(request):
             messages.success(request, message='Errand created')
             return HttpResponseRedirect(reverse('errands:detail', args=[form.instance.id]))
     else:
-        key = settings.GOOGLE_API_KEY
-        context = {
-            'key': key,
-        }
-        return redirect('errands:create', context)
+        return redirect('errands:create')
 
 
 @login_required

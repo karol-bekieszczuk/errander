@@ -590,5 +590,3 @@ class TestUserPasswordChange(TestCase):
         self.assertFalse(user is not None and user.is_authenticated)
         user = authenticate(username=user1_data['username'], password=new_passwords_dict['new_password1'])
         self.assertTrue(user is not None and user.is_authenticated)
-
-#TODO test new user index and profile page with checking priviledge

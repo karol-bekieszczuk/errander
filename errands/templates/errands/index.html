@@ -1,11 +1,14 @@
 {% extends 'base.html' %}
+
+{% block title %}Errands{% endblock %}
+
 {% block content %}
 {% if perms.errands.create %}
     <a href="{% url 'errands:new' %}">New errand</a>
 {% endif %}
 <h1>Errands</h1>
 <ul>
-    {% for errand in object_list %}
+    {% for errand in errands %}
         <li><a href="{% url 'errands:detail' errand.id %}">{{ errand }}</a></li>
     {% empty %}
         <li>No errands assigned.</li>

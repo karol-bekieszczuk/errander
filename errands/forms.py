@@ -25,7 +25,8 @@ class DetailEditForm(PermissionedForm):
     assigned_users = forms.ModelMultipleChoiceField(
         queryset=User.objects.all(),
         widget=forms.CheckboxSelectMultiple,
-        required=False
+        required=False,
+        label='Assign users'
     )
 
     class Meta:
