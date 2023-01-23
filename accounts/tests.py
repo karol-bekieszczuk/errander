@@ -62,7 +62,7 @@ class LogInTest(TestCase):
             'password': 'secret'}
         User.objects.create_user(**self.credentials)
 
-    def test_log_in(self):
+    def test_log_in_and_redirect_to_profile_page(self):
         self.credentials = {
             'username': 'testuser',
             'password': 'secret'}
@@ -70,12 +70,12 @@ class LogInTest(TestCase):
         messages = list(response.context['messages'])
         self.assertEqual(len(messages), 1)
         self.assertEqual(str(messages[0]), 'log in success')
-        self.assertRedirects(response, reverse('accounts:profile'), status_code=302)
+        self.assertRedirects(response, reverse('accounts:profile', kwargs={'pk': response.wsgi_request.user.id}), status_code=302)
 
     def test_wrong_password(self):
         self.credentials = {
             'username': 'testuser',
-            'password': 'secreassasat'}
+            'password': 'wrongpswd'}
         response = self.client.post(reverse('accounts:login_user'), self.credentials, follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'accounts/login.html')
@@ -428,18 +428,91 @@ class TestUserProfilePage(TestCase):
             password=user1_data['password1'],
         )
 
+        self.user_can_view_other_users = User.objects.create_user(
+            username=user2_data['username'],
+            email=user2_data['email'],
+            password=user2_data['password1'],
+        )
+
+        content_type = ContentType.objects.get_for_model(User)
+        permission = Permission.objects.get(content_type=content_type, codename='view_any_user')
+        self.user_can_view_other_users.user_permissions.add(permission)
+        self.user_can_view_other_users.save()
+
     def test_not_logged_in_user_cant_access_profile_page(self):
-        response = self.client.get(reverse('accounts:profile'), follow=True)
+        response = self.client.get(reverse('accounts:profile', kwargs={'pk': 1}), follow=True)
         self.assertTemplateUsed(response, 'accounts/login.html')
 
     def test_user_can_view_its_profile_page(self):
         self.client.login(username=user1_data['username'], password=user1_data['password1'])
-        response = self.client.get(reverse('accounts:profile'), follow=True)
+        response = self.client.get(reverse('accounts:profile', kwargs={'pk': self.user.id}), follow=True)
         self.assertTemplateUsed(response, 'accounts/profile.html')
         self.assertContains(response, f'Hi {response.wsgi_request.user.username}')
         self.assertContains(response, "Change password", html=True)
         self.assertContains(response, "Reset password", html=True)
 
+    def test_users_without_correct_permission_cant_view_other_users_profile_page(self):
+        self.client.login(username=user1_data['username'], password=user1_data['password1'])
+        response = self.client.get(reverse('accounts:profile', kwargs={'pk': self.user_can_view_other_users.id}), follow=True)
+        self.assertEqual(response.context['user'].username, self.user.username)
+        self.assertNotEqual(response.context['user'].username, self.user_can_view_other_users.username)
+
+    def test_users_with_correct_permission_can_view_other_users_profile_page(self):
+        self.client.login(username=user2_data['username'], password=user2_data['password1'])
+        response = self.client.get(reverse('accounts:profile', kwargs={'pk': self.user.id}), follow=True)
+        self.assertEqual(response.context['user'].username, self.user.username)
+        self.assertNotEqual(response.context['user'].username, self.user_can_view_other_users.username)
+
+
+class TestUserIndex(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username=user1_data['username'],
+            email=user1_data['email'],
+            password=user1_data['password1'],
+        )
+
+        self.user_can_view_index = User.objects.create_user(
+            username=user2_data['username'],
+            email=user2_data['email'],
+            password=user2_data['password1'],
+        )
+
+        content_type = ContentType.objects.get_for_model(User)
+        permission = Permission.objects.get(content_type=content_type, codename='view_index')
+        self.user_can_view_index.user_permissions.add(permission)
+        self.user_can_view_index.save()
+
+    def test_anonymous_users_cant_view_users_index(self):
+        response = self.client.get(reverse('accounts:index'), follow=True)
+        self.assertEqual(response.status_code, 403)
+
+    def test_user_without_correct_permission_cant_view_users_index(self):
+        self.client.login(username=user1_data['username'], password=user1_data['password1'])
+        response = self.client.get(reverse('accounts:index'), follow=True)
+        self.assertEqual(response.status_code, 403)
+
+    def test_user_with_correct_permission_can_view_users_index(self):
+        self.client.login(username=user2_data['username'], password=user2_data['password1'])
+        response = self.client.get(reverse('accounts:index'), follow=True)
+
+        queryset = [
+            User(
+                id=self.user.id,
+                username=user1_data['username'],
+                email=user1_data['email'],
+                password=user1_data['password1'],
+            ),
+            User(
+                id=self.user_can_view_index.id,
+                username=user2_data['username'],
+                email=user2_data['email'],
+                password=user2_data['password1'],
+            )
+        ]
+
+        self.assertQuerysetEqual(response.context['users'], queryset, ordered=False)
+        self.assertEqual(response.status_code, 200)
 
 class TestUserPasswordChange(TestCase):
 
@@ -517,3 +590,5 @@ class TestUserPasswordChange(TestCase):
         self.assertFalse(user is not None and user.is_authenticated)
         user = authenticate(username=user1_data['username'], password=new_passwords_dict['new_password1'])
         self.assertTrue(user is not None and user.is_authenticated)
+
+#TODO test new user index and profile page with checking priviledge

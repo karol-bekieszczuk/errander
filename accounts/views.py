@@ -1,7 +1,8 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
+from django.utils.decorators import method_decorator
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from .forms import SignupForm
@@ -12,6 +13,34 @@ from django.utils.http import urlsafe_base64_decode
 from django.template.loader import render_to_string
 from emails.tokens import TokenGenerator
 from django.core.mail import EmailMessage
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views import generic
+from .models import User
+
+
+class UserIndexView(LoginRequiredMixin, generic.ListView):
+    template_name = 'accounts/index.html'
+    context_object_name = 'users'
+
+    def get_queryset(self):
+        return User.objects.all()
+
+    @method_decorator(permission_required('accounts.view_index', raise_exception=True))
+    def dispatch(self, *args, **kwargs):
+        return super(UserIndexView, self).dispatch(*args, **kwargs)
+
+
+class UserDetailView(LoginRequiredMixin, generic.DetailView):
+    model = User
+    template_name = 'accounts/profile.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = get_object_or_404(User, pk=self.request.user.id)
+        if self.request.user.has_perm('accounts.view_any_user'):
+            user = get_object_or_404(User, pk=self.kwargs['pk'])
+        context['user'] = user
+        return context
 
 
 @login_required
@@ -73,7 +102,7 @@ def login_user(request):
         if user is not None:
             login(request, user)
             messages.success(request, 'log in success')
-            return redirect('accounts:profile')
+            return redirect('accounts:profile', pk=user.id)
         else:
             messages.success(request, 'logging in error')
             return render(request, 'accounts/login.html', {})
@@ -86,8 +115,3 @@ def logout_user(request):
     logout(request)
     messages.success(request, 'log out success')
     return render(request, 'accounts/logged_out.html', {})
-
-
-@login_required
-def profile(request):
-    return render(request, 'accounts/profile.html', {})

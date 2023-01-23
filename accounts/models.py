@@ -14,7 +14,9 @@ class User(AbstractUser):
 
     class Meta:
         permissions = [
-            ("register_user", "User can acces registration form and send invitaion to app"),
+            ('register_user', 'User can acces registration form and send invitaion to app'),
+            ('view_index', 'User can view index of all app users'),
+            ('view_any_user', 'User can view any user in profile page')
         ]
 
     def __str__(self):
