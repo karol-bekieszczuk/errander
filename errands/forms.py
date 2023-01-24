@@ -2,6 +2,7 @@ from django import forms
 from .models import Errand
 from accounts.models import User
 from permissionedforms import PermissionedForm
+from django.core.exceptions import ValidationError
 
 
 class CreateErrandForm(forms.ModelForm):
@@ -16,7 +17,6 @@ class CreateErrandForm(forms.ModelForm):
         super(CreateErrandForm, self).__init__(*args, **kwargs)
         self.fields['address'].widget.attrs['id'] = 'autocomplete'
         self.fields['address'].widget.attrs['name'] = 'autocomplete'
-        self.fields['geolocation'].widget.attrs['readonly'] = True
 
 
 class DetailEditForm(PermissionedForm):

@@ -89,7 +89,7 @@ def update(request, errand_id):
         errand = get_object_or_404(Errand, pk=errand_id)
         form = DetailEditForm(request.POST)
         if form.is_valid():
-            if request.user.has_perm('errands.assign_users') and form.cleaned_data['assigned_users']:
+            if request.user.has_perm('errands.assign_users'):
                 errand.assigned_users.set(form.cleaned_data['assigned_users'])
             errand.status = request.POST['status']
             errand.save()

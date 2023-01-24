@@ -12,7 +12,7 @@ class Errand(models.Model):
         (4, 'Done')
     )
 
-    assigned_users = models.ManyToManyField(User)
+    assigned_users = models.ManyToManyField(User, blank=True)
     name = models.CharField(max_length=50, null=False)
     description = models.CharField(max_length=200, null=False)
     status = models.IntegerField(default=1, choices=STATUSES, null=False)
@@ -25,7 +25,7 @@ class Errand(models.Model):
     class Meta:
         permissions = [
             ("create", "User can create Errand object"),
-            ("assign_users", "User can add users to Errand object"),
+            ("assign_users", "User can add/remove users to Errand object"),
             ("can_list_and_view_every_errand", "User can view every existing errand")
         ]
 

@@ -307,14 +307,41 @@ class ErrandTest(TestCase):
         user1_errand = Errand.objects.filter(assigned_users=self.user1_with_errands.id).first()
         response = self.client.post(
             reverse('errands:update', args=(user1_errand.id,)),
-            {'status': 2, 'change_reason': 'added user_without_errands', 'assigned_users':[self.user1_with_errands.id, self.user_without_errands.id,]},
+            {'status': 2,
+             'change_reason': 'added user_without_errands',
+             'assigned_users':[self.user1_with_errands.id, self.user2_with_errands.id, self.user_without_errands.id,]},
             follow=True
         )
 
         self.assertRedirects(response, reverse('errands:detail', args={response.context['errand'].id}), status_code=302)
         self.assertEqual(self.user_without_errands.errand_set.count(), 1)
         self.assertContains(response, 'added user_without_errands')
-    
+
+    def test_users_with_correct_permission_can_remove_users_from_errand(self):
+        content_type = ContentType.objects.get_for_model(Errand)
+        permission = Permission.objects.get(content_type=content_type, codename='assign_users')
+        self.user1_with_errands.user_permissions.add(permission)
+        self.user1_with_errands.save()
+
+        self.client.login(
+            username=user1_with_errands_data['username'],
+            password=user1_with_errands_data['password']
+        )
+
+        self.assertEqual(self.user2_with_errands.errand_set.count(), 2)
+
+        user2_errand = Errand.objects.filter(assigned_users=self.user2_with_errands.id).first()
+
+        response = self.client.post(
+            reverse('errands:update', args=(user2_errand.id,)),
+            {'status': 2, 'change_reason': 'removed user 2 with errands', 'assigned_users':[self.user1_with_errands.id]},
+            follow=True
+        )
+
+        self.assertRedirects(response, reverse('errands:detail', args={response.context['errand'].id}), status_code=302)
+        self.assertEqual(self.user2_with_errands.errand_set.count(), 1)
+        self.assertNotIn(self.user2_with_errands.username, str(user2_errand.assigned_users.all()))
+
     def test_users_without_correct_permission_cant_assign_users_to_errand(self):
         self.client.login(
             username=user1_with_errands_data['username'],
@@ -388,7 +415,7 @@ class FormsTest(TestCase):
         form = CreateErrandForm(errand_details_form_data)
         self.assertTrue(form.is_valid())
 
-    def test_create_form_without_assigned_users_is_not_valid(self):
+    def test_create_form_without_assigned_users_is_valid(self):
         errand_details_form_data = {
             'assigned_users': [],
             'name': 'test name',
@@ -397,8 +424,7 @@ class FormsTest(TestCase):
             'geolocation': '12,124|13.125',
         }
         form = CreateErrandForm(errand_details_form_data)
-        self.assertFormError(form, field='assigned_users', errors='This field is required.')
-        self.assertFalse(form.is_valid())
+        self.assertTrue(form.is_valid())
 
     def test_create_form_without_name_is_not_valid(self):
         errand_details_form_data = {
