@@ -307,13 +307,14 @@ class ErrandTest(TestCase):
         user1_errand = Errand.objects.filter(assigned_users=self.user1_with_errands.id).first()
         response = self.client.post(
             reverse('errands:update', args=(user1_errand.id,)),
-            {'status': 2, 'change_reason': 'added user_without_errands', 'assigned_users':[self.user_without_errands.id,]},
+            {'status': 2, 'change_reason': 'added user_without_errands', 'assigned_users':[self.user1_with_errands.id, self.user_without_errands.id,]},
             follow=True
         )
+
         self.assertRedirects(response, reverse('errands:detail', args={response.context['errand'].id}), status_code=302)
         self.assertEqual(self.user_without_errands.errand_set.count(), 1)
         self.assertContains(response, 'added user_without_errands')
-
+    
     def test_users_without_correct_permission_cant_assign_users_to_errand(self):
         self.client.login(
             username=user1_with_errands_data['username'],

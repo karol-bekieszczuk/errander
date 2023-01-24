@@ -42,7 +42,12 @@ class ErrandDetailView(LoginRequiredMixin, generic.DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['form'] = DetailEditForm(for_user=self.request.user)
+        context['form'] = DetailEditForm(
+            for_user=self.request.user,
+            initial={
+                'assigned_users': context['errand'].assigned_users.all(),
+            }
+        )
         context['status_string'] = Errand.STATUSES[context['errand'].status][1]
         context['last_change_reason'] = context['errand'].history.first().history_change_reason
         context['google_api_key'] = settings.GOOGLE_API_KEY
@@ -85,8 +90,7 @@ def update(request, errand_id):
         form = DetailEditForm(request.POST)
         if form.is_valid():
             if request.user.has_perm('errands.assign_users') and form.cleaned_data['assigned_users']:
-                for u in form.cleaned_data['assigned_users']:
-                    errand.assigned_users.add(u)
+                errand.assigned_users.set(form.cleaned_data['assigned_users'])
             errand.status = request.POST['status']
             errand.save()
             update_change_reason(errand, request.POST['change_reason'])
