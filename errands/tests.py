@@ -24,7 +24,13 @@ def assign_users_to_errands(errands, assigned_users):
             e.assigned_users.add(u)
 
 
-#set users data
+def assign_perm_to_user(model, user, perm):
+    content_type = ContentType.objects.get_for_model(model)
+    permission = Permission.objects.get(content_type=content_type, codename=perm)
+    user.user_permissions.add(permission)
+    user.save()
+
+
 user1_with_errands_data = {
     "username": "user1",
     "email": "user1@example-email.com",
@@ -45,33 +51,27 @@ user_without_errands_data = {
     "email": "user4@example-email.com",
     "password": "verysecret4@"
 }
-class ErrandTest(TestCase):
+
+
+class ErrandIndexTest(TestCase):
 
     def setUp(self):
-
-        #create users
         self.user1_with_errands = create_user(
             username=user1_with_errands_data['username'],
             email=user1_with_errands_data['email'],
             password=user1_with_errands_data['password']
-        )
-        self.user2_with_errands = create_user(
-            username=user2_with_errands_data['username'],
-            email=user2_with_errands_data['email'],
-            password=user2_with_errands_data['password']
         )
         self.user_without_errands = create_user(
             username=user_without_errands_data['username'],
             email=user_without_errands_data['email'],
             password=user_without_errands_data['password']
         )
-        self.user_with_permission_to_view_and_list_all_errands = create_user(
-            username=user3['username'],
-            email=user3['email'],
-            password=user3['password']
+        self.user2_with_errands = create_user(
+            username=user2_with_errands_data['username'],
+            email=user2_with_errands_data['email'],
+            password=user2_with_errands_data['password']
         )
 
-        #create errands with assigned users
         self.errands_with_assigned_user1 = [
             create_errand(
                 name='test name1',
@@ -82,6 +82,18 @@ class ErrandTest(TestCase):
                 description='test description2'
             )
         ]
+        self.user_with_permission_to_view_and_list_all_errands = create_user(
+            username=user3['username'],
+            email=user3['email'],
+            password=user3['password']
+        )
+
+        assign_perm_to_user(
+            Errand,
+            self.user_with_permission_to_view_and_list_all_errands,
+            'can_list_and_view_every_errand'
+        )
+
         assign_users_to_errands(
             self.errands_with_assigned_user1,
             [
@@ -89,15 +101,6 @@ class ErrandTest(TestCase):
                 self.user2_with_errands
             ]
         )
-
-        content_type = ContentType.objects.get_for_model(Errand)
-        permission = Permission.objects.get(content_type=content_type, codename='create')
-        self.user1_with_errands.user_permissions.add(permission)
-        self.user1_with_errands.save()
-
-        permission = Permission.objects.get(content_type=content_type, codename='can_list_and_view_every_errand')
-        self.user_with_permission_to_view_and_list_all_errands.user_permissions.add(permission)
-        self.user_with_permission_to_view_and_list_all_errands.save()
 
     def test_user_can_list_assigned_errands(self):
         self.client.login(
@@ -124,7 +127,7 @@ class ErrandTest(TestCase):
 
         self.assertQuerysetEqual(list(response.context['errands']), queryset)
 
-    def user_without_proper_permission_cant_view_all_errands(self):
+    def test_user_without_proper_permission_cant_view_all_errands(self):
         new_errand = create_errand('another', 'errand')
         self.client.login(
             username=user1_with_errands_data['username'],
@@ -134,7 +137,7 @@ class ErrandTest(TestCase):
         self.assertNotContains(response, new_errand.name)
         self.assertNotEqual(response.context['errands'].count(), Errand.objects.all().count())
 
-    def user_with_proper_permission_can_view_all_errands(self):
+    def test_user_with_proper_permission_can_view_all_errands(self):
         new_errand = create_errand('another', 'errand')
         self.client.login(
             username=user3['username'],
@@ -144,19 +147,63 @@ class ErrandTest(TestCase):
         self.assertContains(response, new_errand.name)
         self.assertEqual(response.context['errands'].count(), Errand.objects.all().count())
 
-    def test_not_logged_in_users_cant_access_errands(self):
+    def test_not_logged_in_users_cant_access_errands_index(self):
         response = self.client.get(reverse('errands:index'), follow=True)
         self.assertTemplateUsed('accounts:login_user')
         self.assertContains(response, 'Login', status_code=200)
 
-    def test_users_with_no_errands_gets_empty_queryset(self):
+    def test_users_with_no_errands_gets_empty_queryset_on_index(self):
         self.client.login(
             username=user_without_errands_data['username'],
             password=user_without_errands_data['password']
         )
         response = self.client.get(reverse('errands:index'), follow=True)
+
         self.assertQuerysetEqual(response.context['errands'], [])
-        self.assertContains(response, "No errands assigned.")
+        self.assertContains(response, 'No errands assigned.')
+
+
+class ErrandDetailTest(TestCase):
+
+    def setUp(self):
+        self.user1_with_errands = create_user(
+            username=user1_with_errands_data['username'],
+            email=user1_with_errands_data['email'],
+            password=user1_with_errands_data['password']
+        )
+        self.user_without_errands = create_user(
+            username=user_without_errands_data['username'],
+            email=user_without_errands_data['email'],
+            password=user_without_errands_data['password']
+        )
+        self.user_with_permission_to_view_and_list_all_errands = create_user(
+            username=user3['username'],
+            email=user3['email'],
+            password=user3['password']
+        )
+
+        self.errands_with_assigned_user1 = [
+            create_errand(
+                name='test name1',
+                description='test description1'
+            ),
+            create_errand(
+                name='test name2',
+                description='test description2'
+            )
+        ]
+        assign_users_to_errands(
+            self.errands_with_assigned_user1,
+            [
+                self.user1_with_errands
+            ]
+        )
+
+        assign_perm_to_user(
+            Errand,
+            self.user_with_permission_to_view_and_list_all_errands,
+            'can_list_and_view_every_errand'
+        )
 
     def test_user_can_view_details_of_errand_he_is_assigned_to(self):
         self.client.login(
@@ -186,6 +233,126 @@ class ErrandTest(TestCase):
         response = self.client.get(reverse('errands:detail', args=(user_errand.id,)), follow=True)
 
         self.assertEqual(response.context['errand'].name, user_errand.name)
+
+
+class ErrandCreateTest(TestCase):
+
+    def setUp(self):
+        self.user1_with_errands = create_user(
+            username=user1_with_errands_data['username'],
+            email=user1_with_errands_data['email'],
+            password=user1_with_errands_data['password']
+        )
+
+        self.errands_with_assigned_user1 = [
+            create_errand(
+                name='test name1',
+                description='test description1'
+            ),
+            create_errand(
+                name='test name2',
+                description='test description2'
+            )
+        ]
+        assign_users_to_errands(
+            self.errands_with_assigned_user1,
+            [
+                self.user1_with_errands
+            ]
+        )
+
+        assign_perm_to_user(Errand, self.user1_with_errands, 'create')
+
+    def test_only_users_with_correct_permission_can_create_errands(self):
+        self.client.login(
+            username=user1_with_errands_data['username'],
+            password=user1_with_errands_data['password']
+        )
+
+        errand_details_form_data = {
+            'assigned_users': [self.user1_with_errands.id, ],
+            'name': 'errand created with correct permission',
+            'description': 'test errand description',
+            'address': 'test address',
+            'geolocation': '12,124|13.125',
+        }
+
+        self.assertEqual(self.user1_with_errands.errand_set.count(), 2)
+
+        response = self.client.post(reverse('errands:create'), errand_details_form_data, follow=True)
+
+        self.assertRedirects(
+            response,
+            reverse('errands:detail', kwargs={'pk':response.context['errand'].id}),
+            status_code=302
+        )
+        self.assertEqual(self.user1_with_errands.errand_set.count(), 3)
+
+    def test_users_without_correct_permission_cant_create_errands(self):
+        self.client.login(
+            username=user2_with_errands_data['username'],
+            password=user2_with_errands_data['password']
+        )
+
+        errand_details_form_data = {
+            'assigned_users': [self.user1_with_errands.id, ],
+            'name': 'errand created with correct permission',
+            'description': 'test errand description',
+            'address': 'test address',
+            'geolocation': '12,124|13.125',
+        }
+        response = self.client.post(reverse('errands:create'), errand_details_form_data, follow=True)
+        self.assertEqual(response.status_code, 403)
+
+
+class ErrandEditTest(TestCase):
+
+    def setUp(self):
+        self.user1_with_errands = create_user(
+            username=user1_with_errands_data['username'],
+            email=user1_with_errands_data['email'],
+            password=user1_with_errands_data['password']
+        )
+        self.user2_with_errands = create_user(
+            username=user2_with_errands_data['username'],
+            email=user2_with_errands_data['email'],
+            password=user2_with_errands_data['password']
+        )
+        self.user_without_errands = create_user(
+            username=user_without_errands_data['username'],
+            email=user_without_errands_data['email'],
+            password=user_without_errands_data['password']
+        )
+        self.user_with_permission_to_view_and_list_all_errands = create_user(
+            username=user3['username'],
+            email=user3['email'],
+            password=user3['password']
+        )
+
+        self.errands_with_assigned_user1 = [
+            create_errand(
+                name='test name1',
+                description='test description1'
+            ),
+            create_errand(
+                name='test name2',
+                description='test description2'
+            )
+        ]
+        assign_users_to_errands(
+            self.errands_with_assigned_user1,
+            [
+                self.user1_with_errands,
+                self.user2_with_errands
+            ]
+        )
+
+        assign_perm_to_user(Errand, self.user1_with_errands, 'create')
+        assign_perm_to_user(
+            Errand,
+            self.user_with_permission_to_view_and_list_all_errands,
+            'can_list_and_view_every_errand'
+        )
 
     def test_user_can_edit_errand_he_is_assigned_to(self):
         self.client.login(
@@ -232,56 +399,19 @@ class ErrandTest(TestCase):
         response = self.client.get(reverse('errands:detail', args=(user1_errand.id,)), follow=True)
         self.assertContains(response, 'change by user 1')
 
-    def test_only_users_with_correct_permission_can_create_errands(self):
-        self.client.login(
-            username=user1_with_errands_data['username'],
-            password=user1_with_errands_data['password']
-        )
-
-        errand_details_form_data = {
-            'assigned_users': [self.user1_with_errands.id, ],
-            'name': 'errand created with correct permission',
-            'description': 'test errand description',
-            'address': 'test address',
-            'geolocation': '12,124|13.125',
-        }
-        response = self.client.post(reverse('errands:create'), errand_details_form_data, follow=True)
-
-        self.assertRedirects(response, reverse('errands:detail', kwargs={'pk':response.context['errand'].id}))
-        self.assertContains(response, 'errand created with correct permission', status_code=200)
-
-    def test_users_without_correct_permission_cant_create_errands(self):
-        self.client.login(
-            username=user2_with_errands_data['username'],
-            password=user2_with_errands_data['password']
-        )
-
-        errand_details_form_data = {
-            'assigned_users': [self.user1_with_errands.id, ],
-            'name': 'errand created with correct permission',
-            'description': 'test errand description',
-            'address': 'test address',
-            'geolocation': '12,124|13.125',
-        }
-        response = self.client.post(reverse('errands:create'), errand_details_form_data, follow=True)
-        self.assertEqual(response.status_code, 403)
-
     def test_users_with_correct_permission_can_view_assign_users_checkboxes_in_edit_view(self):
-        content_type = ContentType.objects.get_for_model(Errand)
-        permission = Permission.objects.get(content_type=content_type, codename='assign_users')
-        self.user1_with_errands.user_permissions.add(permission)
-        self.user1_with_errands.save()
-
+        assign_perm_to_user(Errand, self.user_without_errands, 'assign_users')
+        assign_perm_to_user(Errand, self.user_without_errands, 'can_list_and_view_every_errand')
         self.client.login(
-            username=user1_with_errands_data['username'],
-            password=user1_with_errands_data['password']
+            username=user_without_errands_data['username'],
+            password=user_without_errands_data['password']
         )
         user1_errand = Errand.objects.filter(assigned_users=self.user1_with_errands.id).first()
         response = self.client.get(reverse('errands:detail', args=(user1_errand.id,)), follow=True)
         for u in User.objects.all():
             self.assertContains(response, u.username, status_code=200, count=1)
 
-    def test_users_without_correct_permission_cant_view_users_to_assign(self):
+    def test_assigned_users_without_correct_permission_cant_view_users_to_assign(self):
         self.client.login(
             username=user1_with_errands_data['username'],
             password=user1_with_errands_data['password']
@@ -375,34 +505,7 @@ class FormsTest(TestCase):
             password=user2_with_errands_data['password']
         )
 
-        self.user_with_create_errand_perm = create_user(
-            username=user_without_errands_data['username'],
-            email=user_without_errands_data['email'],
-            password=user_without_errands_data['password']
-        )
-
-        self.errands_with_assigned_user1 = [
-            create_errand(
-                name='test name1',
-                description='test description1'
-            ),
-            create_errand(
-                name='test name2',
-                description='test description2'
-            )
-        ]
-        assign_users_to_errands(
-            self.errands_with_assigned_user1,
-            [
-                self.user1,
-            ]
-        )
-
-        self.user_with_add_user_perm.is_staff = True
-        content_type = ContentType.objects.get_for_model(Errand)
-        permission = Permission.objects.get(content_type=content_type, codename='assign_users')
-        self.user_with_add_user_perm.user_permissions.add(permission)
-        self.user_with_add_user_perm.save()
+        assign_perm_to_user(Errand, self.user_with_add_user_perm, 'assign_users')
 
     def test_correctly_filled_out_creation_form_is_valid(self):
         errand_details_form_data = {
