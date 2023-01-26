@@ -3,13 +3,10 @@
 {% block title %}User index{% endblock %}
 
 {% block content %}
-{% if perms.accounts.register_user %}
-    <a href="{% url 'accounts:signup' %}">New user</a>
-{% endif %}
 <h1>Users</h1>
-<ul>
+<ul class="list-group">
     {% for user in object_list %}
-        <li><a href="{% url 'accounts:profile' user.id %}">{{ user }}</a></li>
+        <li class="list-group-item"><a href="{% url 'accounts:profile' user.id %}">{{ user }}</a></li>
     {% endfor %}
 </ul>
 {% endblock %}

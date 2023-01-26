@@ -1,0 +1,22 @@
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: white;
+}
+
+.nav-item.dropdown a {
+    color: white !important;
+}
+
+.dropdown-menu {
+    background-color: #0275d8;
+}
+
+.navbar-text a {
+    color: white !important;
+}
+
+.dropdown-item:focus, .dropdown-item:hover {
+background-color: #034f84;}

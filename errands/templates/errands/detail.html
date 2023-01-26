@@ -10,7 +10,7 @@
 <h1>Name: {{errand.name}}</h1>
 <h2>Desc: {{errand.description}}</h2>
 <h2>Status: {{status_string}}</h2>
-<h2>Desc: {{errand.address}}</h2>
+<h2>Address: {{errand.address}}</h2>
 {% if last_change_reason is not None %}
     <h2>Last change note: {{last_change_reason}}</h2>
 {% endif %}
@@ -23,5 +23,7 @@
 </form>
 </br>
 
-<div id="map"></div>
+<div id="map_outerdiv">
+    <div id="map"></div>
+</div>
 {% endblock %}

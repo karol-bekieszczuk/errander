@@ -2,15 +2,19 @@
 
 {% block title %}Login{% endblock %}
 
+{% load crispy_forms_tags %}
+
 {% block content %}
 
 <div class = "container">
   <h1>Login</h1>
   <form method="post">
     {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Sign up</button>
+    {{ form|crispy }}
+    </br>
+    <button type="submit" class="btn btn-primary">Log in</button>
   </form>
+  <p>Forgot your password? <a href="{% url 'password_reset' %}">Click here</a></p>
 </div>
 
 {% endblock %}
