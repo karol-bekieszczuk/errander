@@ -39,7 +39,9 @@ class UserDetailView(LoginRequiredMixin, generic.DetailView):
         user = get_object_or_404(User, pk=self.request.user.id)
         if self.request.user.has_perm('accounts.view_any_user'):
             user = get_object_or_404(User, pk=self.kwargs['pk'])
-        context['user'] = user
+        context['object'] = user
+        context['user'] = self.request.user
+        context['user_errands'] = user.errand_set.all()
         return context
 
 
@@ -104,7 +106,7 @@ def login_user(request):
             messages.success(request, 'log in success')
             return redirect('accounts:profile', pk=user.id)
         else:
-            messages.success(request, 'logging in error')
+            messages.error(request, 'logging in error')
             return render(request, 'accounts/login.html', {})
     else:
         return render(request, 'accounts/login.html', {'form': form})

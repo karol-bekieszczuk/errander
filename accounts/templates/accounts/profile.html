@@ -4,8 +4,19 @@
 
 {% block content %}
 
-<h1>Hi {{user.username}}</h1>
-<a href="{% url 'password_change' %}">Change password</a>
-<a href="{% url 'password_reset' %}">Reset password</a>
+<h1>Username: {{object.username}}</h1>
+<h2>Email: {{object.email}}</h2>
+<h2>User errands:</h2>
+<ul class="list-group list-group-flush">
+    {% for errand in user_errands %}
+        <li class="list-group-item"><a href="{% url 'errands:detail' errand.id %}">{{ errand }}</a></li>
+    {% empty %}
+        <p>User has no errands</p>
+    {% endfor %}
+</ul>
+{% if object.id == user.id %}
+    <a href="{% url 'password_change' %}">Change password</a>
+    <a href="{% url 'password_reset' %}">Reset password</a>
+{% endif %}
 
 {% endblock %}
