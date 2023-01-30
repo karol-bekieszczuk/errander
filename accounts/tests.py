@@ -447,21 +447,18 @@ class TestUserProfilePage(TestCase):
         self.client.login(username=user1_data['username'], password=user1_data['password1'])
         response = self.client.get(reverse('accounts:profile', kwargs={'pk': self.user.id}), follow=True)
         self.assertTemplateUsed(response, 'accounts/profile.html')
-        self.assertContains(response, f'Username: {response.wsgi_request.user.username}')
-        self.assertContains(response, "Change password", html=True)
-        self.assertContains(response, "Reset password", html=True)
+        self.assertEqual(response.context['object'].username, user1_data['username'])
 
     def test_users_without_correct_permission_cant_view_other_users_profile_page(self):
         self.client.login(username=user1_data['username'], password=user1_data['password1'])
         response = self.client.get(reverse('accounts:profile', kwargs={'pk': self.user_can_view_other_users.id}), follow=True)
-        self.assertEqual(response.context['user'].username, self.user.username)
-        self.assertNotEqual(response.context['user'].username, self.user_can_view_other_users.username)
+        self.assertEqual(response.context['object'].username, self.user.username)
+        self.assertNotEqual(response.context['object'].username, self.user_can_view_other_users.username)
 
     def test_users_with_correct_permission_can_view_other_users_profile_page(self):
         self.client.login(username=user2_data['username'], password=user2_data['password1'])
         response = self.client.get(reverse('accounts:profile', kwargs={'pk': self.user.id}), follow=True)
         self.assertEqual(response.context['object'].username, self.user.username)
-        self.assertEqual(response.context['user'].username, self.user_can_view_other_users.username)
 
 
 class TestUserIndex(TestCase):

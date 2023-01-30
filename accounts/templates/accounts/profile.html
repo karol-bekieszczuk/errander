@@ -16,7 +16,7 @@
 <h2>Email: {{object.email}}</h2>
 <h2>User errands:</h2>
 <ul class="list-group list-group-flush">
-    {% for errand in user_errands %}
+    {% for errand in object.errand_set.all %}
         <li class="list-group-item"><a href="{% url 'errands:detail' errand.id %}">{{ errand }}</a></li>
     {% empty %}
         <p>User has no errands</p>

@@ -36,12 +36,9 @@ class UserDetailView(LoginRequiredMixin, generic.DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        user = get_object_or_404(User, pk=self.request.user.id)
+        context['object'] = get_object_or_404(User, pk=self.request.user.id)
         if self.request.user.has_perm('accounts.view_any_user'):
-            user = get_object_or_404(User, pk=self.kwargs['pk'])
-        context['object'] = user
-        context['user'] = self.request.user
-        context['user_errands'] = user.errand_set.all()
+            context['object'] = get_object_or_404(User, pk=self.kwargs['pk'])
         return context
 
 
