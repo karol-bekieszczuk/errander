@@ -6,18 +6,20 @@
 {% include 'base_js_maps.html' %}
 {% endblock %}
 
+{% load crispy_forms_tags %}
+
 {% block content %}
 <h1>Name: {{errand.name}}</h1>
 <h2>Desc: {{errand.description}}</h2>
 <h2>Status: {{status_string}}</h2>
 <h2>Address: {{errand.address}}</h2>
-{% if last_change_reason is not None %}
-    <h2>Last change note: {{last_change_reason}}</h2>
+{% if errand.history.first.history_change_reason is not None %}
+    <h2>Last change note: {{errand.history.first.history_change_reason}}</h2>
 {% endif %}
 <form action="{% url 'errands:update' errand.id %}" method="post">
 {% csrf_token %}
 <fieldset>
-    {{ form }}
+    {{ form|crispy }}
 </fieldset>
     <button type="submit">Update</button>
 </form>

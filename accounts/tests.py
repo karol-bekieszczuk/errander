@@ -33,7 +33,7 @@ staff_user_data = {
 }
 
 
-class SignInTest(TestCase):
+class AtuhenticateTest(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='test', password='12test12',
                                              email='test@example.com')
@@ -420,7 +420,7 @@ class FormsTest(TestCase):
         self.assertFalse(pswd_change_form.is_valid())
 
 
-class TestUserProfilePage(TestCase):
+class UserProfilePageTest(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(
             username=user1_data['username'],
@@ -461,7 +461,7 @@ class TestUserProfilePage(TestCase):
         self.assertEqual(response.context['object'].username, self.user.username)
 
 
-class TestUserIndex(TestCase):
+class UserIndexTest(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(
             username=user1_data['username'],
@@ -511,7 +511,8 @@ class TestUserIndex(TestCase):
         self.assertQuerysetEqual(response.context['users'], queryset, ordered=False)
         self.assertEqual(response.status_code, 200)
 
-class TestUserPasswordChange(TestCase):
+
+class UserPasswordChangeTest(TestCase):
 
     def setUp(self):
         self.user = User.objects.create_user(
@@ -527,7 +528,7 @@ class TestUserPasswordChange(TestCase):
     def test_logged_in_user_can_access_password_change_page(self):
         self.client.login(username=user1_data['username'], password=user1_data['password1'])
         response = self.client.post(reverse('password_change'), {}, follow=True)
-        self.assertContains(response, 'Welcome to the Password Change Page', status_code=200)
+        self.assertTemplateUsed(response, 'registration/password_change_form.html')
 
     def test_loged_in_user_can_change_password(self):
         self.client.login(username=user1_data['username'], password=user1_data['password1'])

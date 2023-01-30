@@ -1,6 +1,5 @@
 $main-color: white;
 
-html,
 body {
     height: 100%;
     margin: 0;
@@ -8,9 +7,7 @@ body {
     background-color: $main-color;
 
 }
-.profile-btn:focus, .profile-btn:hover {
-    background-color: lightblue;
-}
+
 .navbar {
     a {
         color: $main-color !important;

@@ -49,7 +49,6 @@ class ErrandDetailView(LoginRequiredMixin, generic.DetailView):
             }
         )
         context['status_string'] = Errand.STATUSES[context['errand'].status][1]
-        context['last_change_reason'] = context['errand'].history.first().history_change_reason
         context['google_api_key'] = settings.GOOGLE_API_KEY
 
         return context
