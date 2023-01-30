@@ -2,6 +2,14 @@
 
 {% block title %}Profile{% endblock %}
 
+{% block extedn_header %}
+{% load compress %}
+{% load static %}
+{% compress css %}
+        <link type="text/x-scss" href="{% static 'css/main.scss' %}" rel="stylesheet" media="screen">
+    {% endcompress %}
+{% endblock %}
+
 {% block content %}
 
 <h1>Username: {{object.username}}</h1>
@@ -14,9 +22,5 @@
         <p>User has no errands</p>
     {% endfor %}
 </ul>
-{% if object.id == user.id %}
-    <a href="{% url 'password_change' %}">Change password</a>
-    <a href="{% url 'password_reset' %}">Reset password</a>
-{% endif %}
 
 {% endblock %}

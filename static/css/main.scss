@@ -1,0 +1,26 @@
+$main-color: white;
+
+html,
+body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    background-color: $main-color;
+
+}
+.profile-btn:focus, .profile-btn:hover {
+    background-color: lightblue;
+}
+.navbar {
+    a {
+        color: $main-color !important;
+    }
+
+    .dropdown-menu {
+        background-color: #0275d8;
+    }
+
+    .dropdown-item:focus, .dropdown-item:hover {
+        background-color: #034f84;
+    }
+}
