@@ -7,7 +7,7 @@ db.sqlite3
 media
 local/
 venv/
-errander/settings.ini
+errander/settings/settings.ini
 static/CACHE/*
 
 # Backup files # 

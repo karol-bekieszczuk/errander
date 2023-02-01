@@ -1,25 +1,36 @@
-# Errander APP
+# Errander sample application
 
-Celem aplikacji jest zarządzanie użytkownikami, zleceniami oraz przypisywanie ich do odpowiednich użytkowników.
+## Setup
 
-Baza danych używana w aplikacji to PostgreSQL, narzędzie do testow jednostkowych i integracyjnych to wbudowane narzedzia Django.
+Clone repository, create and activate virtual environment, install requirements, fill necessary settings in settings.py and run project
 
-Kiedy użytkownik odwiedzi stronę główną nie będąc zalogowanym zostanie przekierowany na stronę logowania ( /login_user ). Jedynie konta z odpowiednimi uprawnieniami mają możliwość wysyłania zaproszeń do założenia konta w aplikacji. Zaproszenie zawiera link aktywujący konto wysłane na podany podczas rejestracji adres. Po potwierdzeniu rejestracji poprzez email użytkownik może zalogować się w aplikacji. Jeżeli token ma więcej niz jeden dzien i uzytkownik nie zostal aktywowany pg_cron sprawdzajac powyzsze warunki raz na 24h usunie uzytkownika.
+```sh
+$ git clone https://github.com/karol-bekieszczuk/errander
+$ cd errander
+$ virtualenv venv
+$ source venv/bin/activate
+(env)$ pip install -r requirements.txt
+```
 
-Domyślny model User z django.contrib.auth.models został zamieniony na customowy rezydujący w accounts/models.py aby dodać m.in. timestampy dla tokenów. Innym istotnym powodem było ograniczenie zapytań do bazy danych, przy takim podejściu zostaje wysłane tylko jedno zapytanie przy pobraniu obiektu użytkownika, gdzie przy użyciu relacji one-to-one oraz sygnałow wymagało by dodatkowego zapytania pobierając dane użytkownika nie znajdujące się w domyślnym modelu User.
+### Development
+To run with development settings fill GOOGLE_API_KEY in errander/settings/dev.py and run python smtp server with
 
-Po zalgowaniu pojawi się strona główna na której będą wyświetlone wszystkie zlecenia do których użytkownik jest przypisany. Pojawi się także odnośnik w toolbarze do strony głównej, Errands ( /errands ) i My profile ( /profile ).
+```sh
+python -m smtpd -n -c DebuggingServer localhost:1025
+```
 
-User z odpowiednimi uprawnieniami może tworzć/edytować/usuwać zlecenia oraz przypisywać userów do errandow. Ma takze uprawnienia do wysylania zaproszen do aplikacji, projekt nie bedzie posiadac strony rejestracji dla niezalogowanych użytkownikow oraz nie posiadajacymi odpowiednich uprawnien.
-User ma możliwość przeglądania errandu i zmiany jego statusu oraz dodanie opisu.
+Next run server (development settings are loaded by default)
 
-Każde zlecenie ma możliwość przypisania lokalizacji przez mapy Google.
+```sh
+(env)$ python manage.py runserver
+```
 
-Zlecenia są wyświetlane na stronie głównej aplikacji ( / )
+### Production
+To run with production settings fill needed settings in errander/settings/prod.py and run the server with correct settings file
 
-Modele:
-User
-Errand
+```sh
+(env)$ python manage.py runserver --settings=errander.settings.prod.py
+```
+And navigate to `http://127.0.0.1:8000/accounts/login_user`.
 
 TODO
-rewrite tests f.e. with pytest-djang

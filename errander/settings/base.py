@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 
 from pathlib import Path
 import os
-from decouple import config
 from django.contrib.messages import constants as messages
 
 MESSAGE_TAGS = {
@@ -118,7 +117,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
 STATIC_URL = 'static/'
-STATIC_ROOT = config('STATIC_ROOT')
+STATIC_ROOT = 'static/'
 STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
@@ -133,32 +132,11 @@ COMPRESS_PRECOMPILERS = (
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_USE_TLS = True
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
 
-# Custom user model
 AUTH_USER_MODEL = 'accounts.User'
 
 LOGIN_URL = '/accounts/login_user'
 LOGOUT_URL = '/accounts/logout_user'
 
-EMAIL_HOST_USER = config('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 
 
-SECRET_KEY = config('SECRET_KEY')
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('PSQL_DB_NAME'),
-        'USER': config('PSQL_USER'),
-        'PASSWORD': config('PSQL_PASSWORD'),
-        'HOST': config('PSQL_HOST'),
-        'PORT': '',
-    }
-}
-
-GOOGLE_API_KEY = config('GOOGLE_API_KEY')

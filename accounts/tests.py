@@ -134,7 +134,6 @@ class EmailRegistrationAndAccountActivationTest(TestCase):
             password=staff_user_data['password']
         )
         response = self.client.post(reverse('accounts:signup'), user2_data, follow=True)
-
         self.assertEqual(response.status_code, 200)
         messages = list(response.context['messages'])
         self.assertEqual(len(messages), 1)
