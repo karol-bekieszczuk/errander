@@ -16,6 +16,7 @@ from django.core.mail import EmailMessage
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views import generic
 from .models import User
+from django.utils import timezone
 
 
 class UserIndexView(LoginRequiredMixin, generic.ListView):
@@ -81,14 +82,15 @@ def activate(request, uidb64, token):
 
     if user is not None and TokenGenerator().check_token(user, token):
         if user.token_expired():
-            messages.success(request, 'Token expired, ask your manager for new link')
+            messages.error(request, 'Token expired, ask your manager for new link')
             return redirect('accounts:login_user')
         user.is_active = True
+        user.account_activation_timestamp = timezone.now()
         user.save()
         messages.success(request, 'Thank you for your email confirmation. Now you can login your account.')
         return redirect('accounts:login_user')
     else:
-        messages.success(request, 'Activation link is invalid!')
+        messages.error(request, 'Activation link is invalid!')
         return redirect('accounts:login_user')
 
 

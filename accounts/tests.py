@@ -12,6 +12,14 @@ from .forms import SignupForm
 from django.core import mail
 from django.contrib.auth.tokens import default_token_generator
 
+
+def assign_perm_to_user(model, user, perm):
+    content_type = ContentType.objects.get_for_model(model)
+    permission = Permission.objects.get(content_type=content_type, codename=perm)
+    user.user_permissions.add(permission)
+    user.save()
+
+
 user1_data = {
     'username': 'user1',
     'email': 'user1@example-email.com',
@@ -122,11 +130,8 @@ class EmailRegistrationAndAccountActivationTest(TestCase):
             email=staff_user_data['email'],
             password=staff_user_data['password'],
         )
-        self.staffMember.is_staff = True
-        content_type = ContentType.objects.get_for_model(User)
-        permission = Permission.objects.get(content_type=content_type, codename='register_user')
-        self.staffMember.user_permissions.add(permission)
-        self.staffMember.save()
+
+        assign_perm_to_user(User, self.staffMember, 'register_user')
 
     def test_users_with_correct_permissions_can_send_invites_to_app(self):
         self.client.login(
@@ -135,6 +140,13 @@ class EmailRegistrationAndAccountActivationTest(TestCase):
         )
         response = self.client.post(reverse('accounts:signup'), user2_data, follow=True)
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(mail.outbox), 1)
+        user2 = User.objects.get(username=user2_data['username'])
+        uid = TokenGenerator().make_uid(user2)
+        token = TokenGenerator().make_token(user2)
+        self.assertIn("\n  Hi user2,\n  Please click on the link to confirm your registration,\n  "
+                      f"http://testserver/accounts/activate/{uid}/{token}\n"
+                        , mail.outbox[0].body)
         messages = list(response.context['messages'])
         self.assertEqual(len(messages), 1)
         self.assertEqual(str(messages[0]), 'Invite sent')
@@ -155,10 +167,11 @@ class EmailRegistrationAndAccountActivationTest(TestCase):
         self.assertTemplateUsed('accounts:login_user')
         self.assertContains(response, 'Login', status_code=200)
 
-    def test_user_registration_using_correct_and_unexpired_activation_link(self):
+    def test_user_registration_using_correct_and_unexpired_activation_link_and_setting_account_activation_timestamp(self):
         uid = TokenGenerator().make_uid(self.user)
         token = TokenGenerator().make_token(self.user)
         self.assertFalse(self.user.token_expired())
+        self.assertFalse(self.user.is_active)
         response = self.client.post(
             reverse('accounts:activate', kwargs={'uidb64': uid, 'token': token}), {}, follow=True
         )
@@ -167,6 +180,8 @@ class EmailRegistrationAndAccountActivationTest(TestCase):
         self.assertEqual(str(messages[0]), 'Thank you for your email confirmation. Now you can login your account.')
         user = User.objects.get(id=self.user.id)
         self.assertTrue(user.is_active)
+        now = timezone.now().replace(second=0, microsecond=0)
+        self.assertEqual(now, user.account_activation_timestamp.replace(second=0, microsecond=0))
 
     def test_user_registration_using_incorrect_activation_link(self):
         response = self.client.post(
@@ -394,7 +409,10 @@ class FormsTest(TestCase):
             'new_password2': 'new_pass+1'
         }
         pswd_change_form = PasswordChangeForm(data=pswd_change_data, user=self.user)
-        self.assertFormError(pswd_change_form, field='old_password', errors='Your old password was entered incorrectly. Please enter it again.')
+        self.assertFormError(
+            pswd_change_form,
+            field='old_password',
+            errors='Your old password was entered incorrectly. Please enter it again.')
         self.assertFalse(pswd_change_form.is_valid())
 
     def test_new_passwords_has_to_match(self):
@@ -433,10 +451,7 @@ class UserProfilePageTest(TestCase):
             password=user2_data['password1'],
         )
 
-        content_type = ContentType.objects.get_for_model(User)
-        permission = Permission.objects.get(content_type=content_type, codename='view_any_user')
-        self.user_can_view_other_users.user_permissions.add(permission)
-        self.user_can_view_other_users.save()
+        assign_perm_to_user(User, self.user_can_view_other_users, 'view_any_user')
 
     def test_not_logged_in_user_cant_access_profile_page(self):
         response = self.client.get(reverse('accounts:profile', kwargs={'pk': 1}), follow=True)
@@ -474,10 +489,7 @@ class UserIndexTest(TestCase):
             password=user2_data['password1'],
         )
 
-        content_type = ContentType.objects.get_for_model(User)
-        permission = Permission.objects.get(content_type=content_type, codename='view_index')
-        self.user_can_view_index.user_permissions.add(permission)
-        self.user_can_view_index.save()
+        assign_perm_to_user(User, self.user_can_view_index, 'view_index')
 
     def test_anonymous_users_cant_view_users_index(self):
         response = self.client.get(reverse('accounts:index'), follow=True)

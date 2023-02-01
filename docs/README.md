@@ -29,7 +29,7 @@ Next run server (development settings are loaded by default)
 To run with production settings fill needed settings in errander/settings/prod.py and run the server with correct settings file
 
 ```sh
-(env)$ python manage.py runserver --settings=errander.settings.prod.py
+(env)$ python manage.py runserver --settings=errander.settings.prod
 ```
 And navigate to `http://127.0.0.1:8000/accounts/login_user`.
 
