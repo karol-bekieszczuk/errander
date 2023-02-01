@@ -183,7 +183,7 @@ class EmailRegistrationAndAccountActivationTest(TestCase):
         now = timezone.now().replace(second=0, microsecond=0)
         self.assertEqual(now, user.account_activation_timestamp.replace(second=0, microsecond=0))
 
-    def test_user_registration_using_incorrect_activation_link(self):
+    def test_user_activation_using_incorrect_activation_link(self):
         response = self.client.post(
             reverse('accounts:activate', kwargs={'uidb64': 'lorem', 'token': 'ipsum'}), {}, follow=True
         )
@@ -192,6 +192,7 @@ class EmailRegistrationAndAccountActivationTest(TestCase):
         self.assertEqual(str(messages[0]), 'Activation link is invalid!')
         user = User.objects.get(id=self.user.id)
         self.assertFalse(user.is_active)
+        self.assertIsNone(user.account_activation_timestamp)
 
     def test_active_user_can_login(self):
         uid = TokenGenerator().make_uid(self.user)
