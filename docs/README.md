@@ -4,7 +4,7 @@ This is sample application allowing users to create and assign errands to users.
 
 ## Setup
 
-Clone repository, create and activate virtual environment, install requirements, fill necessary settings in settings.py and run project
+Clone repository, create and activate virtual environment, install requirements, fill necessary settings in settings files and run project
 
 ```sh
 $ git clone https://github.com/karol-bekieszczuk/errander
@@ -15,10 +15,10 @@ $ source venv/bin/activate
 ```
 
 ### Development
-In development environment 
+The development environment uses MySQL as database and needs some SMTP server to validate emails.
 To run with development settings fill GOOGLE_API_KEY in errander/settings/dev.py. 
 
-Run python smtp server (this step is optional, but allows mail validation)
+Run python SMTP server (this step is optional, but allows mail validation)
 
 ```sh
 python -m smtpd -n -c DebuggingServer localhost:1025
@@ -31,7 +31,7 @@ Next run server (development settings are loaded by default)
 ```
 
 ### Production
-On production site project uses PostgreSQL as database and Gmail as mail provider.
+The production environment uses PostgreSQL as database and Gmail as mail provider.
 To run with production settings fill neecessary settings in errander/settings/prod.py and run the server with correct settings file
 
 ```sh
@@ -46,14 +46,14 @@ Factories create:
 2. Errands:
 Errands with randomized users assigned to them
 
+# TODO
 ```sh
-TODO factories command
+factories command
 ```
 
 Then navigate to `http://127.0.0.1:8000/accounts/login_user` to log in.
 
 ## Walkthrough
-
 
 ### Users
 Users with default permissions can log in and view its profile page, assigned errands and change or reset password.
@@ -62,13 +62,14 @@ Users with appropriate permissions can view the index of users, details and send
 
 
 ### Errands
-User with no special permissions can list their own errands in profile or index template, then update and/or change its status.
-Users with appropriate permissions can create new errands and assign users to it, list every errand in database and change its assignments.
+User with default permissions can list their own errands in profile or errand index template, then update and/or change its status.
+
+Users with appropriate permissions can create new errands and assign users to it, list every errand in database and change its assigned users.
 
 Every errand has assigned users, name, description, status, address and geolocation on which bases Google map displayed in new and detail errand templates.
 
-TODO
-Errand history is available by clicking on history button in errand detail template.
+# TODO
+Errand history is archived by [jazzband/django-simple-history](https://github.com/jazzband/django-simple-history) and available by clicking on history button in errand detail template.
 
 ## Tests
 
