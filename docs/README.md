@@ -1,5 +1,7 @@
 # Errander sample application
 
+This is sample application allowing users to create and assign errands to users.
+
 ## Setup
 
 Clone repository, create and activate virtual environment, install requirements, fill necessary settings in settings.py and run project
@@ -9,11 +11,14 @@ $ git clone https://github.com/karol-bekieszczuk/errander
 $ cd errander
 $ virtualenv venv
 $ source venv/bin/activate
-(env)$ pip install -r requirements.txt
+(venv)$ pip install -r requirements.txt
 ```
 
 ### Development
-To run with development settings fill GOOGLE_API_KEY in errander/settings/dev.py and run python smtp server with
+In development environment 
+To run with development settings fill GOOGLE_API_KEY in errander/settings/dev.py. 
+
+Run python smtp server (this step is optional, but allows mail validation)
 
 ```sh
 python -m smtpd -n -c DebuggingServer localhost:1025
@@ -22,15 +27,52 @@ python -m smtpd -n -c DebuggingServer localhost:1025
 Next run server (development settings are loaded by default)
 
 ```sh
-(env)$ python manage.py runserver
+(venv)$ python manage.py runserver
 ```
 
 ### Production
-To run with production settings fill needed settings in errander/settings/prod.py and run the server with correct settings file
+On production site project uses PostgreSQL as database and Gmail as mail provider.
+To run with production settings fill neecessary settings in errander/settings/prod.py and run the server with correct settings file
 
 ```sh
-(env)$ python manage.py runserver --settings=errander.settings.prod
+(venv)$ python manage.py runserver --settings=errander.settings.prod
 ```
-And navigate to `http://127.0.0.1:8000/accounts/login_user`.
+Factories create:
+1. Users:
+  * Admin(superuser)
+  * AuthorizedUser(user with all custom user and errand permissions)
+  * SampleUser(user with default permissions)
+
+2. Errands:
+Errands with randomized users assigned to them
+
+```sh
+TODO factories command
+```
+
+Then navigate to `http://127.0.0.1:8000/accounts/login_user` to log in.
+
+## Walkthrough
+
+
+### Users
+Users with default permissions can log in and view its profile page, assigned errands and change or reset password.
+
+Users with appropriate permissions can view the index of users, details and send invites to app by registering new user and sending them activation link. If user clicks on link within 24 hours from creation user gets activated, otherwise link get expired and user is deleted by cron job on database side, this project in production uses PostgreSQL with [citusdata/pg_cron](https://github.com/citusdata/pg_cron) lib.
+
+
+### Errands
+User with no special permissions can list their own errands in profile or index template, then update and/or change its status.
+Users with appropriate permissions can create new errands and assign users to it, list every errand in database and change its assignments.
+
+Every errand has assigned users, name, description, status, address and geolocation on which bases Google map displayed in new and detail errand templates.
 
 TODO
+Errand history is available by clicking on history button in errand detail template.
+
+## Tests
+
+To run the tests, `cd` into the directory where `manage.py` is:
+```sh
+(venv)$ python manage.py test 
+```

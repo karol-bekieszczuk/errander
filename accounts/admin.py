@@ -15,5 +15,11 @@ class CustomUserAdmin(UserAdmin):
     )
     filter_horizontal = ('groups', 'user_permissions', )
 
+    add_fieldsets = UserAdmin.add_fieldsets + (
+        (None, {
+            'fields': ('email',)
+        }),
+    )
+
 
 admin.site.register(User, CustomUserAdmin)
