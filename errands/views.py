@@ -55,7 +55,6 @@ class DetailErrandView(FormMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['status_string'] = Errand.STATUSES[context['errand'].status][1]
         context['google_api_key'] = settings.GOOGLE_API_KEY
 
         return context

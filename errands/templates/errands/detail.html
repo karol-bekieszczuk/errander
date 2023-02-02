@@ -11,7 +11,7 @@
 {% block content %}
 <h1>Name: {{errand.name}}</h1>
 <h2>Desc: {{errand.description}}</h2>
-<h2>Status: {{status_string}}</h2>
+<h2>Status: {{errand.get_status_display}}</h2>
 <h2>Address: {{errand.address}}</h2>
 {% if errand.history.first.history_change_reason is not None %}
     <h2>Last change note: {{errand.history.first.history_change_reason}}</h2>
