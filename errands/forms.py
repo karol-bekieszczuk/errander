@@ -2,7 +2,6 @@ from django import forms
 from .models import Errand
 from accounts.models import User
 from permissionedforms import PermissionedForm
-from django.core.exceptions import ValidationError
 
 
 class CreateErrandForm(forms.ModelForm):

@@ -2,7 +2,8 @@ from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required, permission_required
 from .models import Errand
 from .forms import DetailEditForm, CreateErrandForm
-from django.views import generic
+from django.views.generic import CreateView, ListView, DetailView
+from django.views.generic.edit import FormMixin
 from django.shortcuts import redirect, render, get_object_or_404
 from django.http import HttpResponseRedirect
 from django.urls import reverse
@@ -12,7 +13,7 @@ from django.conf import settings
 from simple_history.utils import update_change_reason
 
 
-class CreateErrandView(LoginRequiredMixin, generic.CreateView):
+class CreateErrandView(LoginRequiredMixin, CreateView):
     template_name = 'errands/new.html'
     form_class = CreateErrandForm
 
@@ -25,7 +26,8 @@ class CreateErrandView(LoginRequiredMixin, generic.CreateView):
         context['google_api_key'] = settings.GOOGLE_API_KEY
         return context
 
-class UserErrandsList(LoginRequiredMixin, generic.ListView):
+
+class UserErrandsList(LoginRequiredMixin, ListView):
     template_name = 'errands/index.html'
     context_object_name = 'errands'
 
@@ -36,18 +38,23 @@ class UserErrandsList(LoginRequiredMixin, generic.ListView):
         return Errand.objects.filter(assigned_users__in=[self.request.user.id])
 
 
-class ErrandDetailView(LoginRequiredMixin, generic.DetailView):
+class DetailErrandView(FormMixin, DetailView):
     model = Errand
     template_name = 'errands/detail.html'
+    form_class = DetailEditForm
+
+    def get_initial(self):
+        return {'assigned_users': self.get_object().assigned_users.all()}
+
+    def get_form_kwargs(self):
+        kwargs = super(DetailErrandView, self).get_form_kwargs()
+        kwargs.update({
+            'for_user': self.request.user
+        })
+        return kwargs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['form'] = DetailEditForm(
-            for_user=self.request.user,
-            initial={
-                'assigned_users': context['errand'].assigned_users.all(),
-            }
-        )
         context['status_string'] = Errand.STATUSES[context['errand'].status][1]
         context['google_api_key'] = settings.GOOGLE_API_KEY
 
@@ -58,16 +65,6 @@ class ErrandDetailView(LoginRequiredMixin, generic.DetailView):
             return Errand.objects.filter(id=self.kwargs['pk'])
 
         return Errand.objects.filter(assigned_users__in=[self.request.user.id])
-
-
-class DetailView(LoginRequiredMixin, generic.DetailView):
-    def get(self, request, *args, **kwargs):
-        view = ErrandDetailView.as_view()
-        return view(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
-        view = ErrandDetailView.as_view()
-        return view(request, *args, **kwargs)
 
 
 @permission_required(perm='errands.create', raise_exception=True)
