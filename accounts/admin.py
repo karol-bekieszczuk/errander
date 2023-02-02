@@ -1,10 +1,9 @@
 from django.contrib import admin
-from django.contrib.admin import ModelAdmin
+from django.contrib.auth.admin import UserAdmin
 from .models import User
 
 
-class CustomUserAdmin(ModelAdmin):
-    model = User
+class CustomUserAdmin(UserAdmin):
     list_display = ['email', 'username', ]
     fieldsets = (
         (None, {
