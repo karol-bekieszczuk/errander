@@ -563,7 +563,6 @@ class ErrandHistoryTest(TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['content-type'], 'text/csv')
-        # breakpoint()
 
         content = response.content.decode('utf-8')
         csv_reader = csv.reader(io.StringIO(content))

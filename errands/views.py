@@ -110,7 +110,7 @@ def csv_history(request, pk):
     queryset_valueslist = errand_history.all().values_list(named=True)
     response = HttpResponse(
         content_type='text/csv',
-        headers={'Content-Disposition': 'attachment; filename="somefilename.csv"'},
+        headers={'Content-Disposition': 'attachment; filename="errand_history.csv"'},
     )
 
     writer = csv.writer(response)
