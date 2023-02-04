@@ -149,7 +149,7 @@ class ErrandIndexTest(TestCase):
 
     def test_not_logged_in_users_cant_access_errands_index(self):
         response = self.client.get(reverse('errands:index'), follow=True)
-        self.assertTemplateUsed('accounts:login_user')
+        self.assertTemplateUsed(response, 'accounts/login.html')
         self.assertContains(response, 'Login', status_code=200)
 
     def test_users_with_no_errands_gets_empty_queryset_on_index(self):
@@ -283,7 +283,7 @@ class ErrandCreateTest(TestCase):
 
         self.assertRedirects(
             response,
-            reverse('errands:detail', kwargs={'pk':response.context['errand'].id}),
+            reverse('errands:detail', kwargs={'pk': response.context['errand'].id}),
             status_code=302
         )
         self.assertEqual(self.user1_with_errands.errand_set.count(), 3)
@@ -303,6 +303,11 @@ class ErrandCreateTest(TestCase):
         }
         response = self.client.post(reverse('errands:create'), errand_details_form_data, follow=True)
         self.assertEqual(response.status_code, 403)
+
+    def test_anonymous_users_cant_access_create_form(self):
+        response = self.client.get(reverse('errands:create'), {}, follow=True)
+        self.assertContains(response, 'Login', status_code=200)
+        self.assertTemplateUsed(response, 'accounts/login.html')
 
 
 class ErrandEditTest(TestCase):
@@ -439,7 +444,8 @@ class ErrandEditTest(TestCase):
             reverse('errands:update', args=(user1_errand.id,)),
             {'status': 2,
              'change_reason': 'added user_without_errands',
-             'assigned_users':[self.user1_with_errands.id, self.user2_with_errands.id, self.user_without_errands.id,]},
+             'assigned_users': [self.user1_with_errands.id, self.user2_with_errands.id,
+                                self.user_without_errands.id, ]},
             follow=True
         )
 
@@ -464,7 +470,8 @@ class ErrandEditTest(TestCase):
 
         response = self.client.post(
             reverse('errands:update', args=(user2_errand.id,)),
-            {'status': 2, 'change_reason': 'removed user 2 with errands', 'assigned_users':[self.user1_with_errands.id]},
+            {'status': 2, 'change_reason': 'removed user 2 with errands',
+             'assigned_users': [self.user1_with_errands.id]},
             follow=True
         )
 
@@ -481,18 +488,111 @@ class ErrandEditTest(TestCase):
         user1_errand = Errand.objects.filter(assigned_users=self.user1_with_errands.id).first()
         response = self.client.post(
             reverse('errands:update', args=(user1_errand.id,)),
-            {'status': 2, 'change_reason': 'errand updated but user not assigned', 'assigned_users':[self.user_without_errands.id]},
+            {'status': 2, 'change_reason': 'errand updated but user not assigned',
+             'assigned_users': [self.user_without_errands.id]},
             follow=True
         )
         self.assertRedirects(response, reverse('errands:detail', args={response.context['errand'].id}), status_code=302)
         self.assertEqual(self.user_without_errands.errand_set.count(), 0)
         self.assertContains(response, 'errand updated but user not assigned')
 
+
+class ErrandHistoryTest(TestCase):
+
+    def setUp(self):
+        self.privileged_user = create_user(
+            username=user1_with_errands_data['username'],
+            email=user1_with_errands_data['email'],
+            password=user1_with_errands_data['password']
+        )
+
+        self.user2 = create_user(
+            username=user_without_errands_data['username'],
+            email=user_without_errands_data['email'],
+            password=user_without_errands_data['password']
+        )
+
+        self.errands_with_assigned_user1 = [
+            create_errand(
+                name='test name1',
+                description='test description1'
+            ),
+            create_errand(
+                name='test name2',
+                description='test description2'
+            )
+        ]
+        assign_users_to_errands(
+            self.errands_with_assigned_user1,
+            [
+                self.privileged_user,
+            ]
+        )
+
+        assign_perm_to_user(Errand, self.privileged_user, 'access_history')
+
+    def test_anonymous_user_cant_download_errand_history_csv(self):
+        response = self.client.get(
+            reverse('errands:export_history_csv', args=(self.errands_with_assigned_user1[0].id,)), {}, follow=True
+        )
+        self.assertContains(response, 'Login', status_code=200)
+        self.assertTemplateUsed(response, 'accounts/login.html')
+
+    def test_user_without_proper_permission_cant_download_errand_history_csv(self):
+        self.client.login(
+            username=user_without_errands_data['username'],
+            password=user_without_errands_data['password']
+        )
+
+        response = self.client.get(
+            reverse('errands:export_history_csv', args=(self.errands_with_assigned_user1[0].id,)), {}, follow=True
+        )
+        self.assertEqual(response.status_code, 403)
+
+    def test_user_with_proper_permission_can_download_errand_history_csv(self):
+        import csv
+        import io
+
+        from io import StringIO, BytesIO
+        from .writers import CSVBuffer
+        self.client.login(
+            username=user1_with_errands_data['username'],
+            password=user1_with_errands_data['password']
+        )
+        errand = self.errands_with_assigned_user1[0]
+        response = self.client.get(
+            reverse('errands:export_history_csv', args=(errand.id,)), {}, follow=True
+        )
+        response_bytes = BytesIO(response.getvalue())
+
+        field_names = ['id', 'name', 'description', 'status', 'address', 'geolocation', 'history_id', 'history_date',
+                       'history_change_reason', 'history_type', 'history_user']
+
+        # breakpoint()
+        # buffer = StringIO()
+        # writer = csv.writer(buffer, delimiter=',')
+        # writer.writerow(field_names)
+        # for h in errand.history.all():
+        #     writer.writerow(f'{h.id},{h.name},{h.description},{h.status},{h.address},{h.geolocation},{h.history_id},'
+        #                     f'{h.history_date},{h.history_change_reason},{h.history_type},{h.history_user}')
+        # spamreader = csv.reader(writer, delimiter=',')  # , quotechar='|')
+        # for row in spamreader:
+        #     print(', '.join(row))
+        breakpoint()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['content-type'], 'text/csv')
+        # content = response.streaming_content.decode('utf-8')
+        cvs_reader = csv.reader(io.StringIO(response.streaming_content))
+        body = list(cvs_reader)
+        headers = body.pop(0)
+
+        print(body)
+        print(headers)
+
+
 class FormsTest(TestCase):
 
     def setUp(self):
-
-        # create users
         self.user1 = create_user(
             username=user1_with_errands_data['username'],
             email=user1_with_errands_data['email'],

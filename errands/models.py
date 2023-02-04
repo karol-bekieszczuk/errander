@@ -24,9 +24,10 @@ class Errand(models.Model):
 
     class Meta:
         permissions = [
-            ("create", "User can create Errand object"),
-            ("assign_users", "User can add/remove users to Errand object"),
-            ("can_list_and_view_every_errand", "User can view every existing errand")
+            ('create', 'User can create Errand object'),
+            ('assign_users', 'User can add/remove users to Errand object'),
+            ('can_list_and_view_every_errand', 'User can view every existing errand'),
+            ('access_history', 'User can access history of errand'),
         ]
 
     def __str__(self):

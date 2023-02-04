@@ -21,9 +21,15 @@
 <fieldset>
     {{ form|crispy }}
 </fieldset>
-    <button type="submit">Update</button>
+    <button type="submit" class="btn btn-primary">Update</button>
 </form>
 </br>
+{% if perms.errands.access_history %}
+    <a class="btn btn-primary" href="{% url 'errands:export_history_csv' errand.id %}" role="button">
+        Get errand history in CSV
+    </a>
+    </br>
+{% endif %}
 
 <div class="container" id="map_outerdiv">
     <div id="map"></div>

@@ -11,7 +11,9 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.conf import settings
 from simple_history.utils import update_change_reason
-
+from simple_history.manager import HistoricalQuerySet, HistoryManager
+from .writers import CSVStream
+from itertools import chain
 
 class CreateErrandView(LoginRequiredMixin, CreateView):
     template_name = 'errands/new.html'
@@ -44,12 +46,15 @@ class DetailErrandView(FormMixin, DetailView):
     form_class = DetailEditForm
 
     def get_initial(self):
-        return {'assigned_users': self.get_object().assigned_users.all()}
+        return {
+            'assigned_users': self.get_object().assigned_users.all(),
+            'status': self.get_object().status,
+        }
 
     def get_form_kwargs(self):
         kwargs = super(DetailErrandView, self).get_form_kwargs()
         kwargs.update({
-            'for_user': self.request.user
+            'for_user': self.request.user,
         })
         return kwargs
 
@@ -66,6 +71,7 @@ class DetailErrandView(FormMixin, DetailView):
         return Errand.objects.filter(assigned_users__in=[self.request.user.id])
 
 
+@login_required
 @permission_required(perm='errands.create', raise_exception=True)
 def create(request):
     if request.method == 'POST':
@@ -79,9 +85,9 @@ def create(request):
 
 
 @login_required
-def update(request, errand_id):
+def update(request, pk):
     if request.method == 'POST':
-        errand = get_object_or_404(Errand, pk=errand_id)
+        errand = get_object_or_404(Errand, pk=pk)
         form = DetailEditForm(request.POST)
         if form.is_valid():
             if request.user.has_perm('errands.assign_users'):
@@ -92,4 +98,16 @@ def update(request, errand_id):
             messages.success(request, message='Errand updated')
             return HttpResponseRedirect(reverse('errands:detail', args=[errand.id]))
     else:
-        return render(request, reverse('errands:detail'), {'errand_id': errand_id})
+        return render(request, reverse('errands:detail'), {'pk': pk})
+
+
+@login_required
+@permission_required(perm='errands.access_history', raise_exception=True)
+def csv_history(request, pk):
+    csv_stream = CSVStream()
+    field_names = [(f.name for f in Errand.objects.get(pk=pk).history.first()._meta.get_fields()
+                    if f.name != 'historicalerrand_assigned_users')]
+    errand_history = Errand.objects.get(pk=pk).history.all()
+    queryset_valueslist = errand_history.values_list(named=True)
+
+    return csv_stream.export("errand_history", chain(field_names, queryset_valueslist))
