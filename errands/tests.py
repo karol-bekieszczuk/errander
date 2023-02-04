@@ -5,6 +5,8 @@ from django.urls import reverse
 from .forms import DetailEditForm, CreateErrandForm
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
+import csv
+import io
 
 
 def create_user(username, email, password):
@@ -302,7 +304,8 @@ class ErrandCreateTest(TestCase):
             'geolocation': '12,124|13.125',
         }
         response = self.client.post(reverse('errands:create'), errand_details_form_data, follow=True)
-        self.assertEqual(response.status_code, 403)
+        self.assertContains(response, 'Login', status_code=200)
+        self.assertTemplateUsed('accounts/login.html')
 
     def test_anonymous_users_cant_access_create_form(self):
         response = self.client.get(reverse('errands:create'), {}, follow=True)
@@ -550,11 +553,6 @@ class ErrandHistoryTest(TestCase):
         self.assertEqual(response.status_code, 403)
 
     def test_user_with_proper_permission_can_download_errand_history_csv(self):
-        import csv
-        import io
-
-        from io import StringIO, BytesIO
-        from .writers import CSVBuffer
         self.client.login(
             username=user1_with_errands_data['username'],
             password=user1_with_errands_data['password']
@@ -563,31 +561,36 @@ class ErrandHistoryTest(TestCase):
         response = self.client.get(
             reverse('errands:export_history_csv', args=(errand.id,)), {}, follow=True
         )
-        response_bytes = BytesIO(response.getvalue())
-
-        field_names = ['id', 'name', 'description', 'status', 'address', 'geolocation', 'history_id', 'history_date',
-                       'history_change_reason', 'history_type', 'history_user']
-
-        # breakpoint()
-        # buffer = StringIO()
-        # writer = csv.writer(buffer, delimiter=',')
-        # writer.writerow(field_names)
-        # for h in errand.history.all():
-        #     writer.writerow(f'{h.id},{h.name},{h.description},{h.status},{h.address},{h.geolocation},{h.history_id},'
-        #                     f'{h.history_date},{h.history_change_reason},{h.history_type},{h.history_user}')
-        # spamreader = csv.reader(writer, delimiter=',')  # , quotechar='|')
-        # for row in spamreader:
-        #     print(', '.join(row))
-        breakpoint()
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['content-type'], 'text/csv')
-        # content = response.streaming_content.decode('utf-8')
-        cvs_reader = csv.reader(io.StringIO(response.streaming_content))
-        body = list(cvs_reader)
+        # breakpoint()
+
+        content = response.content.decode('utf-8')
+        csv_reader = csv.reader(io.StringIO(content))
+        body = list(csv_reader)
         headers = body.pop(0)
 
-        print(body)
-        print(headers)
+        field_names = []
+        for f in errand.history.first()._meta.get_fields():
+            if f.name != 'historicalerrand_assigned_users':
+                field_names.append(f.name)
+
+        rows = []
+        for r in errand.history.all():
+            rows.append([str(r.id),
+                         r.name,
+                         r.description,
+                         str(r.status),
+                         r.address,
+                         r.geolocation,
+                         str(r.history_id),
+                         str(r.history_date),
+                         str(r.history_change_reason or ''),
+                         r.history_type,
+                         str(r.history_user or '')])
+
+        self.assertEqual(headers, field_names)
+        self.assertEqual(body, rows)
 
 
 class FormsTest(TestCase):

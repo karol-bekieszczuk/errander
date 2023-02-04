@@ -5,15 +5,15 @@ from .forms import DetailEditForm, CreateErrandForm
 from django.views.generic import CreateView, ListView, DetailView
 from django.views.generic.edit import FormMixin
 from django.shortcuts import redirect, render, get_object_or_404
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.urls import reverse
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.conf import settings
 from simple_history.utils import update_change_reason
-from simple_history.manager import HistoricalQuerySet, HistoryManager
-from .writers import CSVStream
 from itertools import chain
+import csv
+
 
 class CreateErrandView(LoginRequiredMixin, CreateView):
     template_name = 'errands/new.html'
@@ -104,10 +104,16 @@ def update(request, pk):
 @login_required
 @permission_required(perm='errands.access_history', raise_exception=True)
 def csv_history(request, pk):
-    csv_stream = CSVStream()
-    field_names = [(f.name for f in Errand.objects.get(pk=pk).history.first()._meta.get_fields()
+    errand_history = Errand.objects.get(pk=pk).history
+    field_names = [(f.name for f in errand_history.first()._meta.get_fields()
                     if f.name != 'historicalerrand_assigned_users')]
-    errand_history = Errand.objects.get(pk=pk).history.all()
-    queryset_valueslist = errand_history.values_list(named=True)
+    queryset_valueslist = errand_history.all().values_list(named=True)
+    response = HttpResponse(
+        content_type='text/csv',
+        headers={'Content-Disposition': 'attachment; filename="somefilename.csv"'},
+    )
 
-    return csv_stream.export("errand_history", chain(field_names, queryset_valueslist))
+    writer = csv.writer(response)
+    writer.writerows(chain(field_names, queryset_valueslist))
+
+    return response
