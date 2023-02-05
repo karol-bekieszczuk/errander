@@ -2,14 +2,6 @@
 
 {% block title %}Profile{% endblock %}
 
-{% block extedn_header %}
-{% load compress %}
-{% load static %}
-{% compress css %}
-        <link type="text/x-scss" href="{% static 'css/main.scss' %}" rel="stylesheet" media="screen">
-    {% endcompress %}
-{% endblock %}
-
 {% block content %}
 
 <h1>Username: {{object.username}}</h1>
