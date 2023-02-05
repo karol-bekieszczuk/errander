@@ -1,7 +1,6 @@
 div #map_outerdiv{
     width: 100%;
     height: 400px;
-    position:fixed;
     text-align:center;
 
     #map{
@@ -10,4 +9,8 @@ div #map_outerdiv{
         margin:0px auto;
         display:inline-block;
     }
+}
+
+#displayTable{
+   display: none;
 }

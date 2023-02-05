@@ -515,6 +515,12 @@ class ErrandHistoryTest(TestCase):
             password=user_without_errands_data['password']
         )
 
+        self.user3 = create_user(
+            username=user3['username'],
+            email=user3['email'],
+            password=user3['password']
+        )
+
         self.errands_with_assigned_user1 = [
             create_errand(
                 name='test name1',
@@ -529,6 +535,7 @@ class ErrandHistoryTest(TestCase):
             self.errands_with_assigned_user1,
             [
                 self.privileged_user,
+                self.user3
             ]
         )
 
@@ -586,11 +593,23 @@ class ErrandHistoryTest(TestCase):
                          str(r.history_date),
                          str(r.history_change_reason or ''),
                          r.history_type,
-                         str(r.history_user or '')])
+                         str(r.history_user_id or '')])
 
         self.assertEqual(headers, field_names)
         self.assertEqual(body, rows)
 
+    def test_user_with_proper_permission_can_view_errand_history_table(self):
+        self.client.login(
+            username=user1_with_errands_data['username'],
+            password=user1_with_errands_data['password']
+        )
+        errand = self.errands_with_assigned_user1[0]
+        response = self.client.get(
+            reverse('errands:detail', args=(errand.id,)), {}, follow=True
+        )
+        errand_history = errand.history.all()
+        self.assertIn('<button id="mapDisplayBtn"', str(response.content))
+        self.assertEqual(list(response.context['errand_history']), list(errand_history))
 
 class FormsTest(TestCase):
 

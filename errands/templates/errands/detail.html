@@ -27,8 +27,39 @@
         Get errand history in CSV
     </a>
     </br>
+    </br>
+    <button id="mapDisplayBtn" class="btn btn-primary">Show history</button>
+    </br>
+    </br>
+    <table id="displayTable" class="table table-hover">
+        <thead>
+            <tr class="table-primary" >
+                {% for column_name in field_names %}
+                    <th>{{ column_name }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+        {% for row in errand_history %}
+            <tr>
+                <td>{{ row.id }}</td>
+                <td>{{ row.name }}</td>
+                <td>{{ row.description }}</td>
+                <td>{{ row.get_status_display }}</td>
+                <td>{{ row.address }}</td>
+                <td>{{ row.geolocation }}</td>
+                <td>{{ row.history_id }}</td>
+                <td>{{ row.history_date }}</td>
+                <td>{{ row.history_change_reason }}</td>
+                <td>{{ row.history_type }}</td>
+                <td>{{ row.history_user }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
 {% endif %}
-
+</br>
+</br>
 <div class="container" id="map_outerdiv">
     <div id="map"></div>
 </div>
