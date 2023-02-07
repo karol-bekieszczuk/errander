@@ -68,8 +68,7 @@ Users with appropriate permissions can create new errands and assign users to it
 
 Every errand has assigned users, name, description, status, address and geolocation on which bases Google map displayed in new and detail errand templates.
 
-# TODO
-Errand history is archived by [jazzband/django-simple-history](https://github.com/jazzband/django-simple-history) and available by clicking on history button in errand detail template.
+Errand history is archived by [jazzband/django-simple-history](https://github.com/jazzband/django-simple-history) and available to download in .csv format, or by clicking on "Show history" button in errand detail template.
 
 ## Tests
 
