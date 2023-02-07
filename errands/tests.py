@@ -430,10 +430,7 @@ class ErrandEditTest(TestCase):
             self.assertNotContains(response, u.username, status_code=200)
 
     def test_users_with_correct_permission_can_assign_users_to_errand(self):
-        content_type = ContentType.objects.get_for_model(Errand)
-        permission = Permission.objects.get(content_type=content_type, codename='assign_users')
-        self.user1_with_errands.user_permissions.add(permission)
-        self.user1_with_errands.save()
+        assign_perm_to_user(Errand, self.user1_with_errands, 'assign_users')
 
         self.client.login(
             username=user1_with_errands_data['username'],
@@ -457,10 +454,7 @@ class ErrandEditTest(TestCase):
         self.assertContains(response, 'added user_without_errands')
 
     def test_users_with_correct_permission_can_remove_users_from_errand(self):
-        content_type = ContentType.objects.get_for_model(Errand)
-        permission = Permission.objects.get(content_type=content_type, codename='assign_users')
-        self.user1_with_errands.user_permissions.add(permission)
-        self.user1_with_errands.save()
+        assign_perm_to_user(Errand, self.user1_with_errands, 'assign_users')
 
         self.client.login(
             username=user1_with_errands_data['username'],
@@ -491,13 +485,34 @@ class ErrandEditTest(TestCase):
         user1_errand = Errand.objects.filter(assigned_users=self.user1_with_errands.id).first()
         response = self.client.post(
             reverse('errands:update', args=(user1_errand.id,)),
-            {'status': 2, 'change_reason': 'errand updated but user not assigned',
-             'assigned_users': [self.user_without_errands.id]},
+            {
+                'status': 2, 'change_reason': 'errand updated but user not assigned',
+                'assigned_users': [self.user_without_errands.id]
+             },
             follow=True
         )
         self.assertRedirects(response, reverse('errands:detail', args={response.context['errand'].id}), status_code=302)
         self.assertEqual(self.user_without_errands.errand_set.count(), 0)
-        self.assertContains(response, 'errand updated but user not assigned')
+        self.assertEqual(user1_errand.history.first().history_change_reason, 'errand updated but user not assigned')
+
+    def test_anonymous_users_cant_access_errand_detail_page_and_data(self):
+        user1_errand = Errand.objects.filter(assigned_users=self.user1_with_errands.id).first()
+        response = self.client.get(reverse('errands:detail', args=(user1_errand.id,)), {}, follow=True)
+        self.assertContains(response, 'Login', status_code=200)
+        self.assertTemplateUsed(response, 'accounts/login.html')
+
+    def test_anonymous_users_cant_update_errand(self):
+        user1_errand = Errand.objects.filter(assigned_users=self.user1_with_errands.id).first()
+        response = self.client.post(
+            reverse('errands:update', args=(user1_errand.id,)),
+            {
+                'status': 2, 'change_reason': 'errand updated but user not assigned',
+                'assigned_users': [self.user_without_errands.id]
+            },
+            follow=True
+        )
+        self.assertContains(response, 'Login', status_code=200)
+        self.assertTemplateUsed(response, 'accounts/login.html')
 
 
 class ErrandHistoryTest(TestCase):
@@ -607,11 +622,33 @@ class ErrandHistoryTest(TestCase):
         response = self.client.get(
             reverse('errands:detail', args=(errand.id,)), {}, follow=True
         )
-        errand_history = errand.history.all()
         self.assertIn('<button id="mapDisplayBtn"', str(response.content))
-        self.assertEqual(list(response.context['errand_history']), list(errand_history))
+        self.assertEqual(list(response.context['errand_history']), list(errand.history.all()))
 
-class FormsTest(TestCase):
+    def test_user_without_proper_permissions_cant_view_errand_history_table(self):
+        self.client.login(
+            username=user3['username'],
+            password=user3['password']
+        )
+        errand = self.errands_with_assigned_user1[0]
+        response = self.client.get(
+            reverse('errands:detail', args=(errand.id,)), {}, follow=True
+        )
+        self.assertNotIn('<button id="mapDisplayBtn"', str(response.content))
+        self.assertRaises(KeyError, response.context.__getitem__, 'errand_history')
+        self.assertEqual(response.status_code, 200)
+
+    def test_anonymous_user_cant_view_errand_history_table(self):
+        errand = self.errands_with_assigned_user1[0]
+        response = self.client.get(
+            reverse('errands:detail', args=(errand.id,)), {}, follow=True
+        )
+        self.assertNotIn('<button id="mapDisplayBtn"', str(response.content))
+        self.assertRaises(KeyError, response.context.__getitem__, 'errand_history')
+        self.assertTemplateUsed(response, 'accounts/login.html')
+
+
+class FormTest(TestCase):
 
     def setUp(self):
         self.user1 = create_user(
@@ -627,6 +664,34 @@ class FormsTest(TestCase):
         )
 
         assign_perm_to_user(Errand, self.user_with_add_user_perm, 'assign_users')
+
+    def test_assigned_users_have_to_be_a_list(self):
+        errand_details_form_data = {
+            'assigned_users': 'some_string',
+            'name': 'test name',
+            'description': 'test description',
+            'address': 'test address',
+            'geolocation': '12,124|13.125',
+        }
+        form = CreateErrandForm(errand_details_form_data)
+        self.assertFormError(form, field='assigned_users', errors='Enter a list of values.')
+        self.assertFalse(form.is_valid())
+
+    def test_assigned_users_have_to_be_a_list_of_integers(self):
+        errand_details_form_data = {
+            'assigned_users': ['some_string', ],
+            'name': 'test name',
+            'description': 'test description',
+            'address': 'test address',
+            'geolocation': '12,124|13.125',
+        }
+        form = CreateErrandForm(errand_details_form_data)
+        self.assertFormError(
+            form,
+            field='assigned_users',
+            errors=f"“{errand_details_form_data['assigned_users'][0]}” is not a valid value."
+        )
+        self.assertFalse(form.is_valid())
 
     def test_correctly_filled_out_creation_form_is_valid(self):
         errand_details_form_data = {

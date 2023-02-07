@@ -40,7 +40,7 @@ class UserErrandsList(LoginRequiredMixin, ListView):
         return Errand.objects.filter(assigned_users__in=[self.request.user.id])
 
 
-class DetailErrandView(FormMixin, DetailView):
+class DetailErrandView(FormMixin, LoginRequiredMixin, DetailView):
     model = Errand
     template_name = 'errands/detail.html'
     form_class = DetailEditForm
