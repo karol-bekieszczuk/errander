@@ -27,28 +27,26 @@ python -m smtpd -n -c DebuggingServer localhost:1025
 Next run server (development settings are loaded by default)
 
 ```sh
-(venv)$ python manage.py runserver
+(venv)$ ./manage.py runserver
 ```
 
 ### Production
 The production environment uses PostgreSQL as database and Gmail as mail provider.
+
+Fixtures are provided to create users:
+  * Admin(superuser)
+  * PrivilegedUser(user with all custom user and errand permissions)
+  * DefaultUser(user with default permissions)
+
+Run fixtures with
+```sh
+(venv)$ ./manage.py loaddata accounts/accounts.json --settings=errander.settings.prod
+```
+
 To run with production settings fill neecessary settings in errander/settings/prod.py and run the server with correct settings file
 
 ```sh
-(venv)$ python manage.py runserver --settings=errander.settings.prod
-```
-Factories create:
-1. Users:
-  * Admin(superuser)
-  * AuthorizedUser(user with all custom user and errand permissions)
-  * SampleUser(user with default permissions)
-
-2. Errands:
-Errands with randomized users assigned to them
-
-# TODO
-```sh
-factories command
+(venv)$ ./manage.py runserver --settings=errander.settings.prod
 ```
 
 Then navigate to `http://127.0.0.1:8000/accounts/login_user` to log in.
@@ -56,7 +54,7 @@ Then navigate to `http://127.0.0.1:8000/accounts/login_user` to log in.
 ## Walkthrough
 
 ### Users
-Users with default permissions can log in and view its profile page, assigned errands and change or reset password.
+Users with default permissions can log in and view their profile page, assigned errands and change or reset password.
 
 Users with appropriate permissions can view the index of users, details and send invites to app by registering new user and sending them activation link. If user clicks on link within 24 hours from creation user gets activated, otherwise link get expired and user is deleted by cron job on database side, this project in production uses PostgreSQL with [citusdata/pg_cron](https://github.com/citusdata/pg_cron) lib.
 

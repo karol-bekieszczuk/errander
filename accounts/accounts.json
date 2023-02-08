@@ -1,0 +1,70 @@
+[
+{
+    "model": "accounts.user",
+    "pk": 1,
+    "fields": {
+        "password": "pbkdf2_sha256$390000$LX6H0TrfSSLHd3Vtkj9Fko$qRy1ErJdWPb1XS5yDVYsVFGBE73MoYHhNh+jJdUxAak=",
+        "last_login": "2023-02-07T22:58:23.977Z",
+        "is_superuser": true,
+        "username": "Admin",
+        "first_name": "",
+        "last_name": "",
+        "is_staff": true,
+        "is_active": true,
+        "date_joined": "2023-02-07T22:57:51.493Z",
+        "email": "admin@example.com",
+        "token_generated_timestamp": "2023-02-07T22:57:51.692Z",
+        "account_activation_timestamp": null,
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "accounts.user",
+    "pk": 2,
+    "fields": {
+        "password": "pbkdf2_sha256$390000$65Bt7UqEtHBT42NUeTkLwl$LlY6no41DB63r6fPYmbMKsz4oIsQkpRWaPbe20+xbwU=",
+        "last_login": "2023-02-08T17:19:22.685Z",
+        "is_superuser": false,
+        "username": "PrivilegedUser",
+        "first_name": "",
+        "last_name": "",
+        "is_staff": false,
+        "is_active": true,
+        "date_joined": "2023-02-07T22:59:49.879Z",
+        "email": "privilegeduser@example.com",
+        "token_generated_timestamp": "2023-02-07T22:59:50.075Z",
+        "account_activation_timestamp": null,
+        "groups": [],
+        "user_permissions": [
+            5,
+            7,
+            6,
+            23,
+            21,
+            22,
+            20
+        ]
+    }
+},
+{
+    "model": "accounts.user",
+    "pk": 3,
+    "fields": {
+        "password": "pbkdf2_sha256$390000$Y3miNTF1vypsP2VNTrMoIr$dNV4drI2ZLWuRMdBGo4/QVTUG4WJ5bMTogJdcv9LHdk=",
+        "last_login": null,
+        "is_superuser": false,
+        "username": "DefaultUser",
+        "first_name": "",
+        "last_name": "",
+        "is_staff": false,
+        "is_active": true,
+        "date_joined": "2023-02-07T23:01:43.857Z",
+        "email": "defaultuser@example.com",
+        "token_generated_timestamp": "2023-02-07T23:01:44.057Z",
+        "account_activation_timestamp": null,
+        "groups": [],
+        "user_permissions": []
+    }
+}
+]
