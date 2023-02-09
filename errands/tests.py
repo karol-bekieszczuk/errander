@@ -623,7 +623,7 @@ class ErrandHistoryTest(TestCase):
             reverse('errands:detail', args=(errand.id,)), {}, follow=True
         )
         self.assertIn('<button id="mapDisplayBtn"', str(response.content))
-        self.assertEqual(list(response.context['errand_history']), list(errand.history.all()))
+        self.assertEqual(list(response.context['field_names']), list(errand.history.first()._meta.get_fields()))
 
     def test_user_without_proper_permissions_cant_view_errand_history_table(self):
         self.client.login(
@@ -635,7 +635,7 @@ class ErrandHistoryTest(TestCase):
             reverse('errands:detail', args=(errand.id,)), {}, follow=True
         )
         self.assertNotIn('<button id="mapDisplayBtn"', str(response.content))
-        self.assertRaises(KeyError, response.context.__getitem__, 'errand_history')
+        self.assertRaises(KeyError, response.context.__getitem__, 'field_names')
         self.assertEqual(response.status_code, 200)
 
     def test_anonymous_user_cant_view_errand_history_table(self):
@@ -644,7 +644,7 @@ class ErrandHistoryTest(TestCase):
             reverse('errands:detail', args=(errand.id,)), {}, follow=True
         )
         self.assertNotIn('<button id="mapDisplayBtn"', str(response.content))
-        self.assertRaises(KeyError, response.context.__getitem__, 'errand_history')
+        self.assertRaises(KeyError, response.context.__getitem__, 'field_names')
         self.assertTemplateUsed(response, 'accounts/login.html')
 
 

@@ -62,8 +62,7 @@ class DetailErrandView(FormMixin, LoginRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         context['google_api_key'] = settings.GOOGLE_API_KEY
         if self.request.user.has_perm('errands.access_history'):
-            context['field_names'] = get_errand_history_field_names(context['errand'].history)
-            context['errand_history'] = context['errand'].history.all()
+            context['field_names'] = context['errand'].history.first()._meta.get_fields()
         return context
 
     def get_queryset(self):
@@ -87,7 +86,7 @@ def create(request):
 
 
 @login_required
-def update(request, pk):
+def update(request, pk: int):
     if request.method == 'POST':
         errand = get_object_or_404(Errand, pk=pk)
         form = DetailEditForm(request.POST)
@@ -105,19 +104,20 @@ def update(request, pk):
 
 @login_required
 @permission_required(perm='errands.access_history', raise_exception=True)
-def csv_history(request, pk):
+def csv_history(request, pk: int) -> HttpResponse:
     response = HttpResponse(
         content_type='text/csv',
         headers={'Content-Disposition': 'attachment; filename="errand_history.csv"'},
     )
+
     errand_history = Errand.objects.get(pk=pk).history
     queryset_valueslist = errand_history.all().values_list(named=True)
+
+    fields = list(errand_history.first()._meta.get_fields())
+    fields.pop(0)
+    field_names = (str(f.name) for f in fields)
+
     writer = csv.writer(response)
-    writer.writerows(chain([get_errand_history_field_names(errand_history)], queryset_valueslist))
+    writer.writerows(chain([field_names], queryset_valueslist))
 
     return response
-
-def get_errand_history_field_names(errand_history):
-    field_names = (str(f.name) for f in errand_history.first()._meta.get_fields()
-                   if f.name != 'historicalerrand_assigned_users')
-    return field_names

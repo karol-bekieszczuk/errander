@@ -34,13 +34,15 @@
     <table id="displayTable" class="table table-hover">
         <thead>
             <tr class="table-primary" >
-                {% for column_name in field_names %}
-                    <th>{{ column_name }}</th>
+                {% for column in field_names %}
+                    {% if column.name != 'historicalerrand_assigned_users' %}
+                        <th>{{ column.name }}</th>
+                    {% endif %}
                 {% endfor %}
             </tr>
         </thead>
         <tbody>
-        {% for row in errand_history %}
+        {% for row in errand.history.all %}
             <tr>
                 <td>{{ row.id }}</td>
                 <td>{{ row.name }}</td>
