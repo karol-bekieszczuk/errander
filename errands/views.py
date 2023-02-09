@@ -62,7 +62,7 @@ class DetailErrandView(FormMixin, LoginRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         context['google_api_key'] = settings.GOOGLE_API_KEY
         if self.request.user.has_perm('errands.access_history'):
-            context['field_names'] = context['errand'].history.first()._meta.get_fields()
+            context['field_names'] = context['errand'].history.first()._meta.fields
         return context
 
     def get_queryset(self):
@@ -113,8 +113,7 @@ def csv_history(request, pk: int) -> HttpResponse:
     errand_history = Errand.objects.get(pk=pk).history
     queryset_valueslist = errand_history.all().values_list(named=True)
 
-    fields = list(errand_history.first()._meta.get_fields())
-    fields.pop(0)
+    fields = list(errand_history.first()._meta.fields)
     field_names = (str(f.name) for f in fields)
 
     writer = csv.writer(response)

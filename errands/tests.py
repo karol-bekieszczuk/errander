@@ -592,9 +592,8 @@ class ErrandHistoryTest(TestCase):
         headers = body.pop(0)
 
         field_names = []
-        for f in errand.history.first()._meta.get_fields():
-            if f.name != 'historicalerrand_assigned_users':
-                field_names.append(f.name)
+        for f in errand.history.first()._meta.fields:
+            field_names.append(f.name)
 
         rows = []
         for r in errand.history.all():
@@ -623,7 +622,7 @@ class ErrandHistoryTest(TestCase):
             reverse('errands:detail', args=(errand.id,)), {}, follow=True
         )
         self.assertIn('<button id="mapDisplayBtn"', str(response.content))
-        self.assertEqual(list(response.context['field_names']), list(errand.history.first()._meta.get_fields()))
+        self.assertEqual(list(response.context['field_names']), list(errand.history.first()._meta.fields))
 
     def test_user_without_proper_permissions_cant_view_errand_history_table(self):
         self.client.login(

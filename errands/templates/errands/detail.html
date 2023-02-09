@@ -35,9 +35,7 @@
         <thead>
             <tr class="table-primary" >
                 {% for column in field_names %}
-                    {% if column.name != 'historicalerrand_assigned_users' %}
-                        <th>{{ column.name }}</th>
-                    {% endif %}
+                    <th>{{ column.name }}</th>
                 {% endfor %}
             </tr>
         </thead>
