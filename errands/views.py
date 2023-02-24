@@ -62,7 +62,7 @@ class DetailErrandView(FormMixin, LoginRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         context['google_api_key'] = settings.GOOGLE_API_KEY
         if self.request.user.has_perm('errands.access_history'):
-            context['field_names'] = context['errand'].history.first()._meta.fields
+            context['field_names'] = context['errand'].history.first()._meta.get_fields()
         return context
 
     def get_queryset(self):

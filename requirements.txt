@@ -5,7 +5,7 @@ django-compressor==4.3.1
 django-crispy-forms==1.14.0
 django-libsass==0.9
 django-permissionedforms==0.1
-django-simple-history==3.2.0
+django-simple-history @ git+https://github.com/jazzband/django-simple-history/@eeea6bf2f95eca03e037185aa3aa134344bc01e6
 libsass==0.22.0
 psycopg2-binary==2.9.5
 python-decouple==3.7

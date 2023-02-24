@@ -42,6 +42,11 @@
         <tbody>
         {% for row in errand.history.all %}
             <tr>
+                <td>
+                    {% for assigned_user in row.assigned_users.all %}
+                        {{ assigned_user.user }}
+                    {% endfor %}
+                </td>
                 <td>{{ row.id }}</td>
                 <td>{{ row.name }}</td>
                 <td>{{ row.description }}</td>

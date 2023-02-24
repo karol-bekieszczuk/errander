@@ -622,7 +622,7 @@ class ErrandHistoryTest(TestCase):
             reverse('errands:detail', args=(errand.id,)), {}, follow=True
         )
         self.assertIn('<button id="mapDisplayBtn"', str(response.content))
-        self.assertEqual(list(response.context['field_names']), list(errand.history.first()._meta.fields))
+        self.assertEqual(list(response.context['field_names']), list(errand.history.first()._meta.get_fields()))
 
     def test_user_without_proper_permissions_cant_view_errand_history_table(self):
         self.client.login(

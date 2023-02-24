@@ -19,7 +19,7 @@ class Errand(models.Model):
     address = models.CharField(max_length=200, null=False)
     geolocation = models.CharField(max_length=200, null=False)
     history = HistoricalRecords(
-        m2m_fields=[assigned_users]
+        m2m_fields=[assigned_users],
     )
 
     class Meta:
@@ -32,4 +32,3 @@ class Errand(models.Model):
 
     def __str__(self):
         return f'Name: {self.name}\nDesc: {self.description}'
-
