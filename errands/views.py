@@ -105,18 +105,33 @@ def update(request, pk: int):
 @login_required
 @permission_required(perm='errands.access_history', raise_exception=True)
 def csv_history(request, pk: int) -> HttpResponse:
+    errand_history = Errand.objects.get(pk=pk).history.all()
+
+    field_names = [
+        'id', 'name', 'description', 'status', 'assigned_users',
+        'change_date', 'change_reason', 'change_type', 'user_committing_change'
+    ]
+
     response = HttpResponse(
         content_type='text/csv',
         headers={'Content-Disposition': 'attachment; filename="errand_history.csv"'},
     )
-
-    errand_history = Errand.objects.get(pk=pk).history
-    queryset_valueslist = errand_history.all().values_list(named=True)
-
-    fields = list(errand_history.first()._meta.fields)
-    field_names = (str(f.name) for f in fields)
-
     writer = csv.writer(response)
-    writer.writerows(chain([field_names], queryset_valueslist))
+    writer.writerow(field_names)
+
+    for history in errand_history:
+        assigned_users = ', '.join(str(user.user) for user in history.assigned_users.all())
+
+        writer.writerow([
+            history.id,
+            history.name,
+            history.description,
+            history.status,
+            assigned_users,
+            history.history_date,
+            history.history_change_reason,
+            history.history_type,
+            history.history_user
+        ])
 
     return response

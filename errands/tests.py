@@ -591,24 +591,23 @@ class ErrandHistoryTest(TestCase):
         body = list(csv_reader)
         headers = body.pop(0)
 
-        field_names = []
-        for f in errand.history.first()._meta.fields:
-            field_names.append(f.name)
+        field_names = [
+            'id', 'name', 'description', 'status', 'assigned_users',
+            'change_date', 'change_reason', 'change_type', 'user_committing_change'
+        ]
 
         rows = []
-        for r in errand.history.all():
-            rows.append([str(r.id),
-                         r.name,
-                         r.description,
-                         str(r.status),
-                         r.address,
-                         r.geolocation,
-                         str(r.history_id),
-                         str(r.history_date),
-                         str(r.history_change_reason or ''),
-                         r.history_type,
-                         str(r.history_user_id or '')])
-
+        for history in errand.history.all():
+            rows.append([str(history.id),
+                         history.name,
+                         history.description,
+                         str(history.status),
+                         ', '.join(str(user.user) for user in history.assigned_users.all()),
+                         str(history.history_date),
+                         str(history.history_change_reason or ''),
+                         history.history_type,
+                         str(history.history_user_id or '')])
+        # breakpoint()
         self.assertEqual(headers, field_names)
         self.assertEqual(body, rows)
 

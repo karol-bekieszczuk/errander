@@ -40,24 +40,24 @@
             </tr>
         </thead>
         <tbody>
-        {% for row in errand.history.all %}
+        {% for history in errand.history.all %}
             <tr>
                 <td>
-                    {% for assigned_user in row.assigned_users.all %}
+                    {% for assigned_user in history.assigned_users.all %}
                         {{ assigned_user.user }}
                     {% endfor %}
                 </td>
-                <td>{{ row.id }}</td>
-                <td>{{ row.name }}</td>
-                <td>{{ row.description }}</td>
-                <td>{{ row.get_status_display }}</td>
-                <td>{{ row.address }}</td>
-                <td>{{ row.geolocation }}</td>
-                <td>{{ row.history_id }}</td>
-                <td>{{ row.history_date }}</td>
-                <td>{{ row.history_change_reason }}</td>
-                <td>{{ row.history_type }}</td>
-                <td>{{ row.history_user }}</td>
+                <td>{{ history.id }}</td>
+                <td>{{ history.name }}</td>
+                <td>{{ history.description }}</td>
+                <td>{{ history.get_status_display }}</td>
+                <td>{{ history.address }}</td>
+                <td>{{ history.geolocation }}</td>
+                <td>{{ history.history_id }}</td>
+                <td>{{ history.history_date }}</td>
+                <td>{{ history.history_change_reason }}</td>
+                <td>{{ history.history_type }}</td>
+                <td>{{ history.history_user }}</td>
             </tr>
         {% endfor %}
         </tbody>
