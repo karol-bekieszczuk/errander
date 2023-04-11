@@ -1,7 +1,7 @@
+import csv
+
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required, permission_required
-from .models import Errand
-from .forms import DetailEditForm, CreateErrandForm
 from django.views.generic import CreateView, ListView, DetailView
 from django.views.generic.edit import FormMixin
 from django.shortcuts import redirect, render, get_object_or_404
@@ -9,10 +9,15 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.urls import reverse
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.postgres.aggregates import ArrayAgg
 from django.conf import settings
+from django.apps import apps
+from django.db.models import Subquery, OuterRef
+
+from .models import Errand
+from .forms import DetailEditForm, CreateErrandForm
+
 from simple_history.utils import update_change_reason
-from itertools import chain
-import csv
 
 
 class CreateErrandView(LoginRequiredMixin, CreateView):
@@ -76,7 +81,10 @@ class DetailErrandView(FormMixin, LoginRequiredMixin, DetailView):
 @permission_required(perm='errands.create', raise_exception=True)
 def create(request):
     if request.method == 'POST':
-        form = CreateErrandForm(request.POST)
+        data = request.POST.copy()
+        data['address'] = 'test address'
+        form = CreateErrandForm(data)
+        form.address = "test address"
         if form.is_valid():
             form.save()
             messages.success(request, message='Errand created')
@@ -105,7 +113,22 @@ def update(request, pk: int):
 @login_required
 @permission_required(perm='errands.access_history', raise_exception=True)
 def csv_history(request, pk: int) -> HttpResponse:
-    errand_history = Errand.objects.get(pk=pk).history.all()
+    HistoricalErrandAssignedUsers = apps.get_model('errands', 'historicalerrand_assigned_users')
+
+    errand_history = (
+        Errand.objects
+        .get(pk=pk)
+        .history.all()
+        .annotate(
+            assigned_users_list=Subquery(
+                HistoricalErrandAssignedUsers.objects
+                .filter(history_id=OuterRef('history_id'))
+                .values('history_id')
+                .annotate(usernames=ArrayAgg('user__username', distinct=True))
+                .values('usernames')
+            )
+        )
+    )
 
     field_names = [
         'id', 'name', 'description', 'status', 'assigned_users',
@@ -120,14 +143,13 @@ def csv_history(request, pk: int) -> HttpResponse:
     writer.writerow(field_names)
 
     for history in errand_history:
-        assigned_users = ', '.join(str(user.user) for user in history.assigned_users.all())
 
         writer.writerow([
             history.id,
             history.name,
             history.description,
             history.status,
-            assigned_users,
+            history.assigned_users_list,
             history.history_date,
             history.history_change_reason,
             history.history_type,
