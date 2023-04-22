@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 from pathlib import Path
 import os
 from django.contrib.messages import constants as messages
+from decouple import config
 
 MESSAGE_TAGS = {
         messages.DEBUG: 'alert-secondary',
@@ -140,5 +141,24 @@ AUTH_USER_MODEL = 'accounts.User'
 LOGIN_URL = '/accounts/login_user'
 LOGOUT_URL = '/accounts/logout_user'
 
+SECRET_KEY = config('SECRET_KEY')
 
+EMAIL_BACKEND = config('EMAIL_BACKEND')
+EMAIL_USE_TLS = config('EMAIL_USE_TLS')
+EMAIL_HOST = config('EMAIL_HOST')
+EMAIL_PORT = config('EMAIL_PORT')
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 
+DATABASES = {
+    'default': {
+        'ENGINE': config('PSQL_ENGINE'),
+        'NAME': config('PSQL_DB_NAME'),
+        'USER': config('PSQL_USER'),
+        'PASSWORD': config('PSQL_PASSWORD'),
+        'HOST': config('PSQL_HOST'),
+        'PORT': '',
+    }
+}
+
+GOOGLE_API_KEY = config('GOOGLE_API_KEY')
