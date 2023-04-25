@@ -598,16 +598,19 @@ class ErrandHistoryTest(TestCase):
 
         rows = []
         for history in errand.history.all():
+            assigned_users = ''
+            users = ["'" + str(user.user) + "'" for user in history.assigned_users.all()]
+            if users:
+                assigned_users = "[" + ", ".join(users) + "]"
             rows.append([str(history.id),
                          history.name,
                          history.description,
                          str(history.status),
-                         ', '.join(str(user.user) for user in history.assigned_users.all()),
+                         assigned_users,
                          str(history.history_date),
                          str(history.history_change_reason or ''),
                          history.history_type,
                          str(history.history_user_id or '')])
-        # breakpoint()
         self.assertEqual(headers, field_names)
         self.assertEqual(body, rows)
 

@@ -81,10 +81,7 @@ class DetailErrandView(FormMixin, LoginRequiredMixin, DetailView):
 @permission_required(perm='errands.create', raise_exception=True)
 def create(request):
     if request.method == 'POST':
-        data = request.POST.copy()
-        data['address'] = 'test address'
-        form = CreateErrandForm(data)
-        form.address = "test address"
+        form = CreateErrandForm(request.POST)
         if form.is_valid():
             form.save()
             messages.success(request, message='Errand created')
