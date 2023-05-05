@@ -1,5 +1,5 @@
 #!/bin/sh
-cd app
+cd web
 until python manage.py migrate
 do
   echo 'migration failed, retrying'
