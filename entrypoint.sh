@@ -1,4 +1,5 @@
 #!/bin/sh
+cd app
 until python manage.py migrate
 do
   echo 'migration failed, retrying'

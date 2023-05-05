@@ -6,7 +6,7 @@ RUN apk update && \
  apk add --no-cache python3-dev libc-dev libffi-dev postgresql-libs && \
  apk add --no-cache bash
 
-COPY requirements.txt .
+COPY app/requirements.txt .
 
 RUN \
  pip install --upgrade pip && \
@@ -14,6 +14,6 @@ RUN \
  pip install -r requirements.txt --no-cache-dir && \
  apk --purge del .build-deps
 
-COPY . .
+COPY . /app
 
 EXPOSE 8000

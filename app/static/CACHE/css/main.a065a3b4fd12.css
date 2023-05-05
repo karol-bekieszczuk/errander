@@ -1,0 +1,22 @@
+/* line 3, static/css/main.scss */
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: white; }
+
+/* line 10, static/css/main.scss */
+.profile-btn:focus, .profile-btn:hover {
+  background-color: lightblue; }
+
+/* line 14, static/css/main.scss */
+.navbar a {
+  color: white !important; }
+
+/* line 18, static/css/main.scss */
+.navbar .dropdown-menu {
+  background-color: #0275d8; }
+
+/* line 22, static/css/main.scss */
+.navbar .dropdown-item:focus, .navbar .dropdown-item:hover {
+  background-color: #034f84; }
