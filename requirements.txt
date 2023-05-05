@@ -1,4 +1,5 @@
 asgiref==3.6.0
+cmake==3.26.3
 Django==4.1.5
 django-appconf==1.0.5
 django-compressor==4.3.1
@@ -11,7 +12,7 @@ gunicorn==20.1.0
 libsass==0.22.0
 psycopg2==2.9.6
 psycopg2-binary==2.9.5
-python-decouple==3.7
+python-dotenv==1.0.0
 rcssmin==1.1.1
 rjsmin==1.2.1
 sqlparse==0.4.3

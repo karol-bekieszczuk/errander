@@ -13,7 +13,10 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 from pathlib import Path
 import os
 from django.contrib.messages import constants as messages
-from decouple import config
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 MESSAGE_TAGS = {
         messages.DEBUG: 'alert-secondary',
@@ -152,7 +155,7 @@ EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 
 DATABASES = {
     'default': {
-        'ENGINE': os.getenv('PSQL_ENGINE'),
+        'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.getenv('PSQL_DB_NAME'),
         'USER': os.getenv('PSQL_USER'),
         'PASSWORD': os.getenv('PSQL_PASSWORD'),

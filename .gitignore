@@ -8,7 +8,9 @@ media
 local/
 venv/
 errander/settings.ini
-static/CACHE/*
+static/CACHE/
+static/admin/
+static/errands/
 
 # Backup files # 
 *.bak 

@@ -4,25 +4,13 @@ services:
   web:
     build: .
     image: errander:latest
-    environment:
-      EMAIL_HOST_USER: ${EMAIL_HOST_USER}
-      EMAIL_HOST_PASSWORD: ${EMAIL_HOST_PASSWORD}
-      EMAIL_BACKEND: ${EMAIL_BACKEND}
-      EMAIL_HOST: ${EMAIL_HOST}
-      EMAIL_USE_TLS: ${EMAIL_USE_TLS}
-      EMAIL_PORT: ${EMAIL_PORT}
-      SECRET_KEY: ${SECRET_KEY}
-      GOOGLE_API_KEY: ${GOOGLE_API_KEY}
-      PSQL_DB_NAME: ${PSQL_DB_NAME}
-      PSQL_USER: ${PSQL_USER}
-      PSQL_PASSWORD: ${PSQL_PASSWORD}
-      PSQL_HOST: ${PSQL_HOST}
-      PSQL_ENGINE: django.db.backends.postgresql
     ports:
       - 8000:8000
     depends_on:
       - postgres
     entrypoint: bash entrypoint.sh
+    volumes:
+      - .:/app
   postgres:
     image: postgres:13-alpine
     environment:
