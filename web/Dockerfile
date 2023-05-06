@@ -9,9 +9,10 @@ RUN apk update && \
 COPY requirements.txt .
 
 RUN \
+ python3 -m venv /opt/venv && \
  pip install --upgrade pip && \
  apk add --no-cache --virtual .build-deps g++ gcc musl-dev postgresql-dev && \
- pip install -r requirements.txt --no-cache-dir && \
+ /opt/venv/bin/pip install -r requirements.txt --no-cache-dir && \
  apk --purge del .build-deps
 
 COPY . /web
