@@ -17,4 +17,6 @@ RUN \
 
 COPY . /web
 
-EXPOSE 8000
+RUN chmod +x /web/entrypoint.sh
+
+EXPOSE 8005

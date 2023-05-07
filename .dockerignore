@@ -14,7 +14,7 @@
 .git/
 .sass-cache
 .vagrant/
-.env
+*.env
 __pycache__
 local
 venv
@@ -25,5 +25,7 @@ src/{{ project_name }}/settings/local.py
 src/node_modules
 web/media
 web/static/CACHE
+web/static/admin
+web/static/errands
 stats
 Dockerfile

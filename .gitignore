@@ -17,4 +17,4 @@ web/static/errands/
 
 # User-specific stuff
 .idea/*
-.env
+*.env
