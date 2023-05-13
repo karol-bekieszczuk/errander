@@ -4,7 +4,7 @@ This is sample application allowing users to create and assign errands to users.
 
 ## Setup
 
-Clone repository, and run docker compose up command with --build flag
+Clone repository, create .env file or provide required environmental variables and run docker compose up command
 
 ```sh
 $ git clone https://github.com/karol-bekieszczuk/errander

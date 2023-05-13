@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: errander-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: errander-deployment
+  template:
+    metadata:
+      labels:
+        app: errander-deployment
+    spec:
+      containers:
+        - name: errander
+          image: kbekieszczuk/errander:latest
+          envFrom:
+          - secretRef:
+              name: errander-web-prod-env
+          env:
+            - name: PORT
+              value: "8000"
+          ports:
+            - containerPort: 8000
+      imagePullSecrets:
+        - name: errander-private
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: errander-service
+spec:
+  type: LoadBalancer
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 8000
+  selector:
+    app: errander-deployment

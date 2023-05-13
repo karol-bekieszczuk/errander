@@ -1,4 +1,4 @@
-FROM python:3.8-alpine
+FROM python:3.10-alpine
 
 WORKDIR /web
 
@@ -17,6 +17,6 @@ RUN \
 
 COPY . /web
 
-RUN chmod +x /web/entrypoint.sh
-
-EXPOSE 8005
+RUN chmod +x /web/production_entrypoint.sh
+CMD ["/web/production_entrypoint.sh"]
+EXPOSE 8000

@@ -1,5 +1,4 @@
 #!/bin/sh
-cd web
 /opt/venv/bin/python3 manage.py makemigrations
 until /opt/venv/bin/python3 manage.py migrate --no-input
 do
