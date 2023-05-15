@@ -12,7 +12,7 @@ $ cd errander
 $ docker compose up --build
 ```
 
-Then navigate to `http://127.0.0.1:8000/accounts/login_user` to log in.
+Then navigate to `http://127.0.0.1:8001/accounts/login_user` to log in.
 
 ## Walkthrough
 
