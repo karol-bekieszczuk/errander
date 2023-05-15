@@ -15,6 +15,7 @@ spec:
       containers:
         - name: errander
           image: kbekieszczuk/errander:latest
+          imagePullPolicy: Always
           envFrom:
           - secretRef:
               name: errander-web-prod-env

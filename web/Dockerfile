@@ -17,6 +17,6 @@ RUN \
 
 COPY . /web
 
-RUN chmod +x /web/production_entrypoint.sh
-CMD ["/web/production_entrypoint.sh"]
+RUN chmod +x /web/scripts/production/entrypoint.sh
+CMD ["/web/scripts/production/entrypoint.sh"]
 EXPOSE 8000

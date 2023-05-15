@@ -15,6 +15,7 @@
 .sass-cache
 .vagrant/
 *.env*
+*development*
 __pycache__
 local
 venv

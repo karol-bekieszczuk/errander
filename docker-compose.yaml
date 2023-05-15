@@ -12,7 +12,7 @@ services:
       - 8001:8005
     depends_on:
       - postgres_db
-    entrypoint: bash ./web/development_entrypoint.sh
+    entrypoint: bash ./web/scripts/development/entrypoint.sh
     volumes:
       - .:/web
   postgres_db:
