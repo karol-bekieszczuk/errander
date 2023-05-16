@@ -132,9 +132,12 @@ DATABASES = {
         'PORT': os.environ.get('POSTGRES_PORT'),
     }
 }
+sslmode = 'disable'
 if not DB_IGNORE_SSL:
-    DATABASES['default']['OPTIONS'] = {
-        'sslmode': 'require',
+    sslmode = 'require'
+
+DATABASES['default']['OPTIONS'] = {
+        'sslmode': sslmode,
     }
 
 GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY')
