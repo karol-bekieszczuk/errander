@@ -16,7 +16,7 @@ services:
     volumes:
       - .:/web
   postgres_db:
-    image: postgres:13-alpine
+    image: postgres:13.8-alpine
     env_file:
       - ./web/.env
     expose:
