@@ -16,7 +16,7 @@ jobs:
         working-directory: ./web
     env:
       SECRET_KEY: django-insecure-test-secret-key
-      DB_IGNORE_SSL: True
+      DB_IGNORE_SSL: 'True'
       POSTGRES_DB: errander_test
       POSTGRES_USER: errander_test
       POSTGRES_PASSWORD: errander_test
