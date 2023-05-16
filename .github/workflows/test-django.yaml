@@ -14,13 +14,13 @@ jobs:
     defaults:
       run:
         working-directory: ./web
-      env:
-        SECRET_KEY: django-insecure-test-secret-key
-        POSTGRES_DB: errander_test
-        POSTGRES_USER: errander_test
-        POSTGRES_PASSWORD: errander_test
-        POSTGRES_HOST: localhost
-        POSTGRES_PORT: 5432
+    env:
+      SECRET_KEY: django-insecure-test-secret-key
+      POSTGRES_DB: errander_test
+      POSTGRES_USER: errander_test
+      POSTGRES_PASSWORD: errander_test
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: 5432
     services:
       postgres_db:
         image: postgres:13.8-alpine
