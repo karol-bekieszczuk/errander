@@ -27,10 +27,9 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
       - name: Build and push
-        working-directory: ./web
         uses: docker/build-push-action@v4
         with:
           context: .
-          file: ./Dockerfile
+          file: ./web/Dockerfile
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/errander:latest, ${{ secrets.DOCKERHUB_USERNAME }}/errander:${GITHUB_SHA::10}
