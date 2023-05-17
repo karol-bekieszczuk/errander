@@ -32,4 +32,4 @@ jobs:
           context: .
           file: ./web/Dockerfile
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/errander:latest, ${{ secrets.DOCKERHUB_USERNAME }}/errander:${GITHUB_SHA::10}
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/errander:latest, ${{ secrets.DOCKERHUB_USERNAME }}/errander:${GITHUB_SHA:0:10}
