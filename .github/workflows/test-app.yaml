@@ -3,13 +3,9 @@ name: Django-CI
 on:
   workflow_call:
   workflow_dispatch:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
 
 jobs:
-  build:
+  app_test:
     runs-on: ubuntu-latest
     defaults:
       run:
