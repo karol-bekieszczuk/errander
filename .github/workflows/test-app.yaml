@@ -1,4 +1,4 @@
-name: Django-CI
+name: Errander Test
 
 on:
   workflow_call:

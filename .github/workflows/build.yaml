@@ -34,3 +34,10 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/errander:latest, ${{ secrets.DOCKERHUB_USERNAME }}/errander:${{ github.sha }}
           cache-from: |
+      - name: Install and configure kubectl
+        uses: tale/kubectl-action@v1
+        with:
+          base64-kube-config: ${{ secrets.KUBECONFIG }}
+          kubectl-version: v1.22.0
+      - name: Restart Deployment
+        run: kubectl rollout restart deployment
