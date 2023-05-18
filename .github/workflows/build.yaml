@@ -40,4 +40,9 @@ jobs:
           base64-kube-config: ${{ secrets.KUBECONFIG }}
           kubectl-version: v1.27.1
       - name: Restart Deployment
-        run: kubectl rollout restart deployment/errander-deployment
+        run: | 
+          kubectl apply -f k8s/apps/errander.yaml
+          kubectl set image deployment/errander-deployment errander=${{ secrets.DOCKERHUB_USERNAME }}/errander:${{ github.sha }}
+          kubectl rollout restart deployment/errander-deployment
+      - name: Wait for rollout restart to finish
+        run: kubectl rollout status deployment/errander-deployment
