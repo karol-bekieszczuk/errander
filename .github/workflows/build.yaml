@@ -29,7 +29,8 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v4
         with:
-          context: .
-          file: ./web/Dockerfile
+          context: web
+          file: ./Dockerfile
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/errander:latest, ${{ secrets.DOCKERHUB_USERNAME }}/errander:${{ github.sha }}
+          cache-from: |
