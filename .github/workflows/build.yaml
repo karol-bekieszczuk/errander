@@ -46,3 +46,7 @@ jobs:
           kubectl rollout restart deployment/errander-deployment
       - name: Wait for rollout restart to finish
         run: kubectl rollout status deployment/errander-deployment
+      - name: Migrate database
+        run: |
+          export SINGLE_POD_NAME=$(kubectl get pod -l app=errander-deployment -o jsonpath="{.items[0].metadata.name}")
+          kubectl exec -it $SINGLE_POD_NAME -- bash /web/scripts/production/migrate.sh
