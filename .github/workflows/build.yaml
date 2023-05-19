@@ -39,7 +39,12 @@ jobs:
         with:
           base64-kube-config: ${{ secrets.KUBECONFIG }}
           kubectl-version: v1.27.1
-      - name: Restart Deployment
+      - name: Update deployment secrets
+        run: |
+          echo ${{ secrets.ENV_PROD_FILE }} > web/.env.prod
+          kubectl delete secret errander-web-prod-env
+          kubectl create secret generic errander-web-prod-env --from-env-file=web/.env.prod
+      - name: Update and restart Deployment
         run: | 
           kubectl apply -f k8s/apps/errander.yaml
           kubectl set image deployment/errander-deployment errander=${{ secrets.DOCKERHUB_USERNAME }}/errander:${{ github.sha }}
