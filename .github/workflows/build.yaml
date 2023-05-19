@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [test_app]
     env:
-      SECRET_KEY: django-insecure-test-secret-key
+      PROJECT_NAME: errander
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -32,7 +32,7 @@ jobs:
           context: web
           file: ./web/Dockerfile
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/errander:latest, ${{ secrets.DOCKERHUB_USERNAME }}/errander:${{ github.sha }}
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.PROJECT_NAME }}:latest, ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.PROJECT_NAME }}:${{ github.sha }}
           cache-from: |
       - name: Install and configure kubectl
         uses: tale/kubectl-action@v1
@@ -41,17 +41,17 @@ jobs:
           kubectl-version: v1.27.1
       - name: Update deployment secrets
         run: |
-          echo ${{ secrets.ENV_PROD_FILE }} > web/.env.prod
-          kubectl delete secret errander-web-prod-env
-          kubectl create secret generic errander-web-prod-env --from-env-file=web/.env.prod
+          echo "${{ secrets.ENV_PROD_FILE }}" > web/.env.prod
+          kubectl delete secret ${{ env.PROJECT_NAME }}-web-prod-env
+          kubectl create secret generic ${{ env.PROJECT_NAME }}-web-prod-env --from-env-file=web/.env.prod
       - name: Update and restart Deployment
         run: | 
-          kubectl apply -f k8s/apps/errander.yaml
-          kubectl set image deployment/errander-deployment errander=${{ secrets.DOCKERHUB_USERNAME }}/errander:${{ github.sha }}
-          kubectl rollout restart deployment/errander-deployment
+          kubectl apply -f k8s/apps/${{ env.PROJECT_NAME }}.yaml
+          kubectl set image deployment/${{ env.PROJECT_NAME }}-deployment ${{ env.PROJECT_NAME }}=${{ secrets.DOCKERHUB_USERNAME }}/${{ env.PROJECT_NAME }}:${{ github.sha }}
+          kubectl rollout restart deployment/${{ env.PROJECT_NAME }}-deployment
       - name: Wait for rollout restart to finish
-        run: kubectl rollout status deployment/errander-deployment
+        run: kubectl rollout status deployment/${{ env.PROJECT_NAME }}-deployment
       - name: Migrate database
         run: |
-          export SINGLE_POD_NAME=$(kubectl get pod -l app=errander-deployment -o jsonpath="{.items[0].metadata.name}")
+          export SINGLE_POD_NAME=$(kubectl get pod -l app=${{ env.PROJECT_NAME }}-deployment -o jsonpath="{.items[0].metadata.name}")
           kubectl exec -it $SINGLE_POD_NAME -- bash /web/scripts/production/migrate.sh
