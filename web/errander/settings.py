@@ -13,10 +13,10 @@ MESSAGE_TAGS = {
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-DEBUG = str(os.getenv('DEBUG')) == '1'
+DEBUG = str(os.getenv('DEBUG')) == 'True'
 
-ENV_ALLOWED_HOSTS = os.environ.get("ENV_ALLOWED_HOST")
 ALLOWED_HOSTS = ['127.0.0.1']
+ENV_ALLOWED_HOSTS = os.environ.get("ENV_ALLOWED_HOSTS")
 if ENV_ALLOWED_HOSTS:
     ALLOWED_HOSTS = ENV_ALLOWED_HOSTS.split(',')
 
@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'compressor',
+    'storages',
 ]
 
 MIDDLEWARE = [
@@ -90,8 +91,6 @@ USE_I18N = True
 USE_TZ = True
 
 
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
@@ -121,7 +120,6 @@ EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 
 DB_IGNORE_SSL = os.environ.get('DB_IGNORE_SSL') == 'True'
 
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -139,3 +137,14 @@ if not DB_IGNORE_SSL:
     }
 
 GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY')
+
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles-cdn'
+STATICFILES_DIRS = [
+    BASE_DIR / 'staticfiles',
+]
+
+IGNORE_CDN = os.environ.get('IGNORE_CDN') == 'True'
+if not IGNORE_CDN:
+    # override STATIC_ROOT
+    from .cdn.conf import *

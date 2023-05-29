@@ -4,13 +4,11 @@
 *.pyc
 __pycache__
 db.sqlite3
-media
+media/
 local/
 venv/
 errander/settings.ini
-web/static/CACHE/
-web/static/admin/
-web/static/errands/
+web/staticfiles-cdn/
 
 # Backup files # 
 *.bak 

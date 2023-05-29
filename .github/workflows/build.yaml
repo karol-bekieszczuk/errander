@@ -11,11 +11,16 @@ on:
 jobs:
   test_app:
     uses: karol-bekieszczuk/errander/.github/workflows/test-app.yaml@main
+    secrets:
+      LINODE_BUCKET_ACCESS_KEY: ${{ secrets.LINODE_BUCKET_TEST_ACCESS_KEY }}
+      LINODE_BUCKET_SECRET_KEY: ${{ secrets.LINODE_BUCKET_TEST_SECRET_KEY }}
   docker_build:
     runs-on: ubuntu-latest
     needs: [test_app]
     env:
       PROJECT_NAME: errander
+      LINODE_BUCKET_ACCESS_KEY: ${{ secrets.LINODE_BUCKET_ACCESS_KEY }}
+      LINODE_BUCKET_SECRET_KEY: ${{ secrets.LINODE_BUCKET_SECRET_KEY }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -55,3 +60,4 @@ jobs:
         run: |
           export SINGLE_POD_NAME=$(kubectl get pod -l app=${{ env.PROJECT_NAME }}-deployment -o jsonpath="{.items[0].metadata.name}")
           kubectl exec -it $SINGLE_POD_NAME -- bash /web/scripts/production/migrate.sh
+          kubectl exec -it $SINGLE_POD_NAME -- bash /web/scripts/production/collectstatic.sh

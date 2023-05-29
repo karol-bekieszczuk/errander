@@ -2,9 +2,7 @@
 {% load static %}
 <script src="https://code.jquery.com/jquery-3.4.1.js"></script>
 <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
-{% compress css %}
-    <link type="text/x-scss" href="{% static 'errands/style.scss' %}" rel="stylesheet" media="screen">
-{% endcompress %}
+<link type="text/css" href="{% static 'errands/style.css' %}" rel="stylesheet" media="screen">
 
 <script type="text/javascript">
     var google_api_key = "{{google_api_key|safe}}";

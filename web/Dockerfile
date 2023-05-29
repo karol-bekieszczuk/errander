@@ -2,7 +2,8 @@ FROM python:3.10-alpine
 
 WORKDIR /web
 
-RUN apk update && \
+RUN \
+ apk update && \
  apk add --no-cache python3-dev libc-dev libffi-dev postgresql-libs && \
  apk add --no-cache bash
 
@@ -17,6 +18,9 @@ RUN \
 
 COPY . /web
 
-RUN chmod +x /web/scripts/production/entrypoint.sh
+RUN \
+ chmod +x /web/scripts/production/entrypoint.sh \
+          /web/scripts/production/migrate.sh \
+          /web/scripts/production/collectstatic.sh
 CMD ["/web/scripts/production/entrypoint.sh"]
 EXPOSE 8000
